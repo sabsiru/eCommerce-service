@@ -85,6 +85,20 @@
 </details>
 
 ---
+# 5. API 명세서
+
+- ### [잔액 조회](docs/api/get-balance.md)
+- ### [잔액 충전](docs/api/charge-balance.md)
+- ### [상품 조회](docs/api/list-products.md)
+- ### [상품 상세보기](docs/api/get-product.md)
+- ### [장바구니 추가](docs/api/add-cart.md)
+- ### [상위 상품 조회](docs/api/popular-products.md)
+- ### [쿠폰 발급](docs/api/issue-coupon.md)
+- ### [쿠폰 사용](docs/api/use-coupon.md)
+- ### [주문](docs/api/order.md)
+- ### [결제](docs/api/payments.md)
+
+---
 
 ## 프로젝트
 
