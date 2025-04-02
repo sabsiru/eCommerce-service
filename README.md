@@ -8,6 +8,13 @@
 - ### [요구사항 분석 바로가기](docs/Requirements.md)
 
 ---
+# 2. ERD 설계
+<details>
+<summary>보기</summary>
+    <img src="docs/diagram/erd.png">
+</details>
+
+---
 
 
 ## 프로젝트
