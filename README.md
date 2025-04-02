@@ -15,6 +15,12 @@
 </details>
 
 ---
+# 3. 클래스 다이어그램 설계
+<details>
+<summary>보기</summary>
+    <img src="docs/diagram/class_diagram.png">
+</details>
+
 
 
 ## 프로젝트
