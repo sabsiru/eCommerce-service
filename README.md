@@ -21,7 +21,70 @@
     <img src="docs/diagram/class_diagram.png">
 </details>
 
+---
+# 4. 시퀀스 다이어그램
 
+### 잔액 조회
+<details>
+<summary>보기</summary>
+    <img src="docs/diagram/sequence/get_balance.png">
+</details>
+
+### 잔액 충전
+<details>
+<summary>보기</summary>
+    <img src="docs/diagram/sequence/charge_balance.png">
+</details>
+
+### 상품 조회
+<details>
+<summary>보기</summary>
+    <img src="docs/diagram/sequence/list_product.png">
+</details>
+
+### 상품 상세보기
+<details>
+<summary>보기</summary>
+    <img src="docs/diagram/sequence/get_product.png">
+</details>
+
+### 상위 상품 조회
+<details>
+<summary>보기</summary>
+    <img src="docs/diagram/sequence/popular_products.png">
+</details>
+
+### 쿠폰 발급
+<details>
+<summary>보기</summary>
+    <img src="docs/diagram/sequence/issue_coupon.png">
+</details>
+
+### 쿠폰 조회
+<details>
+<summary>보기</summary>
+    <img src="docs/diagram/sequence/get_coupon.png">
+</details>
+
+### 장바구니 추가
+<details>
+<summary>보기</summary>
+    <img src="docs/diagram/sequence/add_cart.png">
+</details>
+
+### 주문
+<details>
+<summary>보기</summary>
+    <img src="docs/diagram/sequence/order.png">
+</details>
+
+### 결제
+<details>
+<summary>보기</summary>
+    <img src="docs/diagram/sequence/payment.png">
+</details>
+
+---
 
 ## 프로젝트
 
