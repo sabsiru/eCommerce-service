@@ -1,0 +1,37 @@
+shape: sequence_diagram
+user: 사용자 {shape: person}
+api: API
+service: Service
+coupon: Coupon
+userCoupon: UserCoupon
+
+user.style: {
+  stroke-dash: 0
+}
+
+쿠폰 발급: {
+  user -> api.t: 쿠폰 발급 요청
+  api.t -> service.t: 쿠폰 발급 요청
+  service.t -> coupon.t: 쿠폰 발급 가능 여부 확인
+  coupon.t -> service.t: 쿠폰 발급 가능 {
+    style.stroke-dash: 4
+  }
+  service.t -> userCoupon.t: 사용자 쿠폰 발급
+  userCoupon.t -> service.t: 쿠폰 발급 완료 {
+    style.stroke-dash: 4
+  }
+  service.t -> api.t: 쿠폰 발급 결과 반환 {
+    style.stroke-dash: 4
+  }
+  api.t -> user: 쿠폰 발급 결과 반환 {
+    style.stroke-dash: 4
+  }
+  쿠폰의 수량이 없을 시: {
+    coupon -> service: 쿠폰 수량 없음 {
+      style.stroke-dash: 4
+    }
+    service -> user: 쿠폰 수량 없음 반환 {
+      style.stroke-dash: 4
+    }
+  }
+}

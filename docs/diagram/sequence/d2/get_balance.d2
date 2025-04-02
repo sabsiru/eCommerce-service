@@ -1,0 +1,30 @@
+shape: sequence_diagram
+user: 사용자 {shape: person}
+api: API
+service: Service
+db: Database
+
+user.style: {
+  stroke-dash: 0
+}
+
+잔액 조회 성공: {
+  user -> api.t: 잔액 조회 요청
+  api -> service.t: 잔액 조회 요청
+  service.t -> db.t: 사용자 잔액 조회
+  db.t -> service.t: 잔액 정보 반환 {
+    style.stroke-dash: 4
+  }
+  service.t -> api: 잔액 조회 결과 반환 {
+    style.stroke-dash: 4
+  }
+  api.t -> user: 잔액 조회 결과 반환 {
+    style.stroke-dash: 4
+  }
+
+  잔액 조회 실패: {
+    service -> user: 사용자 없음 또는 오류 {
+      style.stroke-dash: 4
+    }
+  }
+}

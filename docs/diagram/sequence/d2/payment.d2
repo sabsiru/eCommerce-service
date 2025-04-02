@@ -1,0 +1,58 @@
+shape: sequence_diagram
+
+user: 사용자 {shape: person}
+api: API
+service: Service
+userDb: User
+order: Order
+product: Product
+userCoupon: UserCoupon
+balanceHistory: BalanceHistory
+
+user.style: {
+  stroke-dash: 0
+}
+
+결제 시퀀스: {
+  user -> api.t: 결제 요청
+  api.t -> service.t: 결제 요청 전달
+  service.t -> order.t1: 주문 상태 확인
+  order.t1 -> service.t: 주문 상태 반환 {
+    style.stroke-dash: 4
+  }
+
+  service.t -> product.t1: 상품 재고 확인
+  product.t1 -> service.t: 재고 확인 결과 {
+    style.stroke-dash: 4
+  }
+  service.t -> userCoupon.t: 쿠폰 조회
+  userCoupon.t -> service.t: 쿠폰 정보 반환 {
+    style.stroke-dash: 4
+  }
+  service.t -> service.t: 쿠폰 적용 및 결제 금액 조정
+  service.t -> userDb.1: 결제 가능 여부 확인
+  userDb.1 -> service.t: 결제 가능 {
+    style.stroke-dash: 4
+  }
+  service.t -> product.t: 주문 항목 재고 차감
+  product.t -> service.t: 재고 차감 완료 {
+    style.stroke-dash: 4
+  }
+  service.t -> userDb.c: 잔액 차감
+  service.t -> order.t: 결제 완료 상태 업데이트 및 주문 정보 저장
+  service.t -> balanceHistory.t: 잔액 내역 기록
+  service.t -> api.t: 결제 완료 결과 반환 {
+    style.stroke-dash: 4
+  }
+  api.t -> user: 결제 완료 결과 반환 {
+    style.stroke-dash: 4
+  }
+  잔액 부족 및 재고 부족: {
+    userDb -> user: 잔액이 부족합니다. {
+      style.stroke-dash: 4
+    }
+    product -> user: 재고가 부족합니다. {
+      style.stroke-dash: 4
+    }
+  }
+}

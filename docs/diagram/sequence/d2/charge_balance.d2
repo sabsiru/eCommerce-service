@@ -1,0 +1,34 @@
+shape: sequence_diagram
+
+user: 사용자 {shape: person}
+api: API
+service: Service
+db: Database
+
+user.style: {
+  stroke-dash: 0
+}
+
+잔액 충전 성공: {
+  user -> api.t: 잔액 충전 요청
+  api -> service.t: 잔액 충전 요청
+  service.t -> db.t1: 충전 금액 확인
+  db.t1 -> service.t: 금액 확인 완료 {
+    style.stroke-dash: 4
+  }
+  service.t -> db.t: 사용자 잔액 업데이트
+  db.t -> service.t: 잔액 업데이트 완료 {
+    style.stroke-dash: 4
+  }
+  service.t -> api: 충전 완료 응답 {
+    style.stroke-dash: 4
+  }
+  api.t -> user: 잔액 충전 결과 반환 {
+    style.stroke-dash: 4
+  }
+  잔액 충전 실패: {
+    service -> user: 유효하지 않은 금액 또는 최대 잔액 초과 {
+      style.stroke-dash: 4
+    }
+  }
+}

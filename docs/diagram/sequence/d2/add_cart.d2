@@ -1,0 +1,46 @@
+shape: sequence_diagram
+
+user: 사용자 {shape: person}
+api: API
+service: Service
+product: Product
+cart: Cart
+cartitem: CartItem
+
+user.style: {
+  stroke-dash: 0
+}
+
+장바구니에 상품 추가: {
+  user -> api.t: 장바구니에 상품 추가 요청
+  api.t -> service.t: 장바구니에 상품 추가 요청
+
+  service.t -> product.t1: 상품 재고 확인
+  product.t1 -> service.t: 재고 정보 반환 {
+    style.stroke-dash: 4
+  }
+  service.t -> cart.t: 장바구니에 상품 추가
+  cart.t -> cartitem.t: 장바구니 아이템 추가
+
+  cartitem.t -> service.t: 장바구니 아이템 추가 완료 {
+    style.stroke-dash: 4
+  }
+
+  service.t -> product.t: 재고 차감
+  product.t -> service.t: 재고 차감 완료 {
+    style.stroke-dash: 4
+  }
+
+  service.t -> api.t: 장바구니에 상품 추가 완료 {
+    style.stroke-dash: 4
+  }
+  api.t -> user: 장바구니에 상품 추가 완료 {
+    style.stroke-dash: 4
+  }
+
+  장바구니 추가 실패: {
+    product -> user: 재고가 없습니다. {
+      style.stroke-dash: 4
+    }
+  }
+}

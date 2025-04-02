@@ -1,0 +1,35 @@
+shape: sequence_diagram
+user: 사용자 {shape: person}
+api: API
+service: Service
+product: Product
+orderItem: OrderItem
+
+user.style: {
+  stroke-dash: 0
+}
+
+상위 상품 조회: {
+  user -> api.t: 상위 상품 조회 요청
+  api -> service.t: 상위 상품 조회 요청
+  service.t -> orderItem.t: 최근 3일 간의 판매 내역 조회
+  orderItem.t -> service.t: 판매 수량과 상품 정보 반환 {
+    style.stroke-dash: 4
+  }
+  service.t -> product.t: 상위 5개 상품 조회
+  product.t -> service.t: 상위 5개 상품 정보 반환 {
+    style.stroke-dash: 4
+  }
+  service.t -> api: 상위 상품 결과 반환 {
+    style.stroke-dash: 4
+  }
+  api.t -> user: 상위 상품 조회 결과 반환 {
+    style.stroke-dash: 4
+  }
+
+  상위 상품 조회 실패: {
+    service -> user: "상위 상품 조회 실패" {
+      style.stroke-dash: 4
+    }
+  }
+}
