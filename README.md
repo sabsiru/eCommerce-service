@@ -99,6 +99,14 @@
 - ### [결제](docs/api/payments.md)
 
 ---
+# 6. Swagger UI
+- ### [잔액 조회](docs/swagger/get-balance.md)
+- ### [잔액 조회](docs/swagger/charge-balance.md)
+- ### [상품 조회](docs/swagger/list-products.md)
+- ### [상품 상세보기](docs/swagger/get-product.md)
+- ### [상위 상품 조회](docs/swagger/popular-products.md)
+---
+
 
 ## 프로젝트
 
