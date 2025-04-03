@@ -19,7 +19,7 @@
 ## 3. 요청
 
 - Method: `POST`
-- Endpoint: `/orders/{orderId}/payment`
+- Endpoint: `/order/{orderId}/payment`
 
 #### 3.1 Path Variable
 
