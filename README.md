@@ -123,6 +123,8 @@
 - ### [쿠폰 발급](docs/swagger/issue-coupon.md)
 - ### [사용자 쿠폰 조회](docs/swagger/list-coupon.md)
 - ### [쿠폰 사용](docs/swagger/use-coupon.md)
+- ### [주문](docs/swagger/order.md)
+- ### [결제](docs/swagger/payments.md)
 
 ---
 
