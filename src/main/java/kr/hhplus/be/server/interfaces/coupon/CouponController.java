@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.coupon;
+package kr.hhplus.be.server.interfaces.coupon;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
