@@ -1,0 +1,56 @@
+shape: sequence_diagram
+user: 사용자 {shape: person}
+api: API
+service: Service
+coupon: Coupon
+userCoupon: UserCoupon
+order: Order
+db: Database
+
+user.style: {
+  stroke-dash: 0
+}
+
+쿠폰 사용: {
+  user -> api.t: 쿠폰 코드 입력
+  api.t -> service.t: 쿠폰 유효성 검증 요청
+  service.t -> coupon.t: 쿠폰 상태 확인
+  coupon.t -> service.t: 쿠폰 유효성 결과 반환 {
+    style.stroke-dash: 4
+  }
+
+  service.t -> userCoupon.t: 사용자가 쿠폰 보유 여부 확인
+  userCoupon.t -> service.t: 쿠폰 보유 여부 확인 결과 {
+    style.stroke-dash: 4
+  }
+
+  service.t -> order.t1: 쿠폰 할인 금액 반영
+  order.t1 -> service.t: 최종 결제 금액 계산 {
+    style.stroke-dash: 4
+  }
+
+  service.t -> order.t: 결제 내역 저장
+  order.t -> db.t1: 결제 금액 및 내역 DB에 저장
+
+  db.t1 -> order.t: 결제 내역 저장 완료 {
+    style.stroke-dash: 4
+  }
+
+  service.t -> db.t2: 쿠폰 사용 처리 (상태 변경 및 사용 기록)
+  db.t2 -> service.t: 쿠폰 상태 변경 완료 {
+    style.stroke-dash: 4
+  }
+
+  service.t -> api.t: 결제 완료 및 쿠폰 사용 완료 반환 {
+    style.stroke-dash: 4
+  }
+
+  api.t -> user: 결제 완료 및 쿠폰 사용 완료 {
+    style.stroke-dash: 4
+  }
+  쿠폰 사용 실패: {
+    service -> user: "쿠폰 유효하지 않음 또는 이미 사용됨" {
+      style.stroke-dash: 4
+    }
+  }
+}

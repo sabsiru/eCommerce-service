@@ -1,0 +1,227 @@
+User: {
+  shape: class
+  +id: Long
+  +name: String
+  +balance: Int
+  +createdAt: DateTime
+
+  +chargeBalance(): void
+  +useBalance(): void
+  +hasEnoughBalance(): Boolean
+  +getBalance(): Int
+}
+
+BalanceHistory: {
+  shape: class
+  +id: Long
+  +userId: Long
+  +amount: Int
+  +type: BalanceHistoryType
+  +balanceAfter: Int
+  +createdAt: DateTime
+  +relatedOrderId: Long
+}
+
+BalanceHistoryType: {
+  shape: class
+  CHARGE
+  USE
+  REFUND
+}
+
+Product: {
+  shape: class
+  +id: Long
+  +name: String
+  +price: Int
+  +stock: Int
+  +categoryId: Long
+
+  +decreaseStock(): void
+  +increaseStock(): void
+  +isStockEnough(): Boolean
+  +getPrice(): Int
+}
+
+Category: {
+  shape: class
+  +id: Long
+  +name: String
+  +createdAt: DateTime
+  +updatedAt: DateTime
+}
+
+OrderStatus: {
+  shape: class
+  PENDING
+  PAID
+  CANCEL
+  REFUND
+}
+
+Order: {
+  shape: class
+  +id: Long
+  +userId: Long
+  +userCouponId: Long
+  +totalAmount: Int
+  +discountAmount: Int
+  +status: OrderStatus
+  +createdAt: DateTime
+  +status: OrderStatus
+
+  +applyCoupon(): void
+  +completePayment(): void
+  +cancelOrder(): void
+}
+
+OrderItem: {
+  shape: class
+  +id: Long
+  +orderId: Long
+  +productId: Long
+  +quantity: Int
+  +price: Int
+  +createdAt: DateTime
+
+  +getTotalPrice(): Int
+  +isQuantityValid(): Boolean
+}
+
+Coupon: {
+  shape: class
+  +id: Long
+  +name: String
+  +discountRate: Int
+  +quantity: Int
+  +status: CouponStatus
+  +createdAt: DateTime
+  +expiredAt: DateTime
+
+  +hasQuantity(): Boolean
+  +get(): void
+  +isUsable(): Boolean
+}
+
+UserCoupon: {
+  shape: class
+  +id: Long
+  +userId: Long
+  +couponId: Long
+  +used: Boolean
+  +createdAt: DateTime
+  +expiredAt: DateTime
+
+  +isUsed(): Boolean
+  +use(): void
+  +canUse(coupon): Boolean
+}
+
+CouponStatus: {
+  shape: class
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
+Cart: {
+  shape: class
+  +id: Long
+  +userId: Long
+  +createdAt: DateTime
+  +updateAt: DateTime
+
+  +addItem(): void
+  +removeItem(): void
+  +updateItemQuantity(): void
+  +clear(): void
+  +getTotalAmount(): Int
+}
+
+CartItem: {
+  shape: class
+  +id: Long
+  +cartId: Long
+  +productId: Long
+  +quantity: Int
+  +price: Int
+  +createdAt: DateTime
+  +updateAt: DateTime
+
+  +updateQuantity(): void
+  +getTotalPrice(): Int
+}
+
+User -> Order: creates {
+  source-arrowhead: 1
+  target-arrowhead: 1
+}
+
+Order -> OrderItem: includes {
+  source-arrowhead: 1
+  target-arrowhead: 1..*
+}
+
+Order -> OrderStatus: has_status {
+  source-arrowhead: 1
+  target-arrowhead: 1
+}
+
+Product -> OrderItem: ordered_in {
+  source-arrowhead: 1
+  target-arrowhead: 1..*
+}
+
+User -> UserCoupon: owns {
+  source-arrowhead: 1
+  target-arrowhead: 1..*
+}
+
+Coupon -> UserCoupon: grants {
+  source-arrowhead: 1
+  target-arrowhead: 1
+}
+
+Coupon -> CouponStatus: has_status {
+  source-arrowhead: 1
+  target-arrowhead: 1
+}
+
+BalanceHistory -> BalanceHistoryType: has_type {
+  source-arrowhead: 1
+  target-arrowhead: 1
+}
+
+BalanceHistory -> User: userId {
+  source-arrowhead: 1
+  target-arrowhead: 1
+}
+
+Category -> Product: categorizes {
+  source-arrowhead: 1
+  target-arrowhead: 1
+}
+
+Cart -> CartItem: includes {
+  source-arrowhead: 1
+  target-arrowhead: 1
+}
+
+CartItem -> Product: refers_to {
+  source-arrowhead: 1
+  target-arrowhead: 1
+}
+
+User -> Cart: owns {
+  source-arrowhead: 1
+  target-arrowhead: 1..*
+}
+
+User -> CartItem: owns {
+  source-arrowhead: 1
+  target-arrowhead: 1..*
+}
+Cart -> Order: creates {
+  source-arrowhead: 1
+  target-arrowhead: 1
+}

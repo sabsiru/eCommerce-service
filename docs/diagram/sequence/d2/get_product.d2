@@ -1,0 +1,31 @@
+shape: sequence_diagram
+
+user: 사용자 {shape: person}
+api: API
+service: Service
+db: Database
+
+user.style: {
+  stroke-dash: 0
+}
+
+상품 상세보기: {
+  user -> api.t: 상품 상세보기 요청
+  api.t -> service.t: 상품 상세 정보 요청
+  service.t -> db.t: 상품 정보 조회
+  db.t -> service.t: 상품 정보 반환 {
+    style.stroke-dash: 4
+  }
+  service.t -> api.t: 상품 상세 정보 반환 {
+    style.stroke-dash: 4
+  }
+  api.t -> user: 상품 상세 정보 반환 {
+    style.stroke-dash: 0
+  }
+}
+
+상품 상세보기 실패: {
+  service -> user: 상품 조회 오류 발생 {
+    style.stroke-dash: 4
+  }
+}

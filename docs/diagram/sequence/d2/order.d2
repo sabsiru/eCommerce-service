@@ -1,0 +1,68 @@
+shape: sequence_diagram
+
+user: 사용자 {shape: person}
+api: API
+service: Service
+product: Product
+userDb: User
+userCoupon: UserCoupon
+order: Order
+orderItem: OrderItem
+
+user.style: {
+  stroke-dash: 0
+}
+
+주문: {
+  user -> api.t: 주문 요청
+  api.t -> service.t: 주문 생성 요청
+  service.t -> product.t: 상품 재고 확인
+  product.t -> service.t: 재고 확인 결과 {
+    style.stroke-dash: 4
+  }
+
+  service -> userDb.t: 잔액 확인
+  userDb.t -> service: 결제 가능 {
+    style.stroke-dash: 4
+  }
+
+  service.t -> userCoupon.t: 쿠폰 조회
+  userCoupon.t -> service.t: 쿠폰 정보 반환 {
+    style.stroke-dash: 4
+  }
+
+  service.t -> order.t: 주문 생성
+  order.t -> service.t: 주문 상태 설정 (주문 대기) {
+    style.stroke-dash: 4
+  }
+  service -> orderItem.t: 주문 상품 저장
+  orderItem.t -> service: 주문 상품 저장 결과 반환 {
+    style.stroke-dash: 4
+  }
+  service.t -> api.t: 주문 생성 결과 반환 {
+    style.stroke-dash: 4
+  }
+  api.t -> user: 주문 생성 결과 반환 {
+    style.stroke-dash: 4
+  }
+  쿠폰 사용 불가: {
+    userCoupon -> service: 사용 가능 쿠폰 없음 {
+      style.stroke-dash: 4
+    }
+    service -> user: 사용가능한 쿠폰이 없습니다. {
+      style.stroke-dash: 4
+    }
+  }
+
+  주문 불가: {
+    product -> service: 재고 부족 {
+      style.stroke-dash: 4
+    }
+    userDb -> service: 잔액 부족 {
+      style.stroke-dash: 4
+    }
+    service -> user: "주문 불가 응답" {
+      style.stroke-dash: 4
+    }
+  }
+}

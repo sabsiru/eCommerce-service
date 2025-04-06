@@ -1,0 +1,108 @@
+User: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  name: string
+  balance: int
+  createdAt: timestamp
+  updatedAt: timestamp
+}
+
+Product: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  name: string {constraint: unique}
+  price: int
+  stock: int
+  categoryId: long {constraint: foreign_key}
+  createdAt: timestamp
+  updatedAt: timestamp
+}
+
+Category: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  name: string {constraint: unique}
+  createdAt: timestamp
+  updatedAt: timestamp
+}
+
+BalanceHistory: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  userId: long {constraint: foreign_key}
+  amount: int
+  type: enum {constraint: ('CHARGE', 'USE', 'REFUND')}
+  balanceAfter: int
+  createdAt: timestamp
+}
+
+UserCoupon: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  userId: long {constraint: foreign_key}
+  couponId: long {constraint: foreign_key}
+  used: boolean
+  createdAt: timestamp
+  expiredAt: timestamp
+}
+
+Order: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  userId: long {constraint: foreign_key}
+  totalAmount: int
+  discountAmount: int
+  orderStatus: enum {constraint: ('PENDING', 'PAID', 'CANCEL','REFUND')}
+  createdAt: timestamp
+  updatedAt: timestamp
+}
+
+OrderItem: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  orderId: long {constraint: foreign_key}
+  productId: long {constraint: foreign_key}
+  quantity: int
+  orderPrice: int
+  createdAt: timestamp
+}
+
+Coupon: {
+  shape: sql_table
+  id: long {constraint: primary_key}
+  name: string {constraint: unique}
+  discountRate: int
+  quantity: int
+  status: enum {constraint: ('ACTIVE', 'INACTIVE','EXPIRED')}
+  createdAt: timestamp
+  expiredAt: timestamp
+}
+Cart: {
+  shape: sql_table
+  +id: int {constraint: primary_key}
+  +userId: int {constraint: foreign_key}
+  +createdAt: DateTime
+  +updateAt: DateTime
+}
+
+CartItem: {
+  shape: sql_table
+  +id: int {constraint: primary_key}
+  +cartId: int {constraint: foreign_key}
+  +productId: int {constraint: foreign_key}
+  +quantity: int
+  +price: int
+  +createdAt: datetime
+  +updateAt: DateTime
+}
+
+User -> Order: creates
+Order -> OrderItem: includes
+Product -> OrderItem: ordered_in
+User -> UserCoupon: has
+Coupon -> UserCoupon: publish
+BalanceHistory -> User: history
+Category -> Product: categorizes
+Cart -> CartItem: contains
+CartItem -> Product: references
+Cart -> User: owned_by
