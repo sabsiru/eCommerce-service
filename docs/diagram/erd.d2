@@ -50,9 +50,10 @@ Order: {
   shape: sql_table
   id: long {constraint: primary_key}
   userId: long {constraint: foreign_key}
+  userCouponId: long {constraint: foreign_key}
   totalAmount: int
   discountAmount: int
-  orderStatus: enum {constraint: ('PENDING', 'PAID', 'CANCEL','REFUND')}
+  status: enum {constraint: ('PENDING', 'PAID', 'CANCEL','REFUND')}
   createdAt: timestamp
   updatedAt: timestamp
 }
@@ -77,6 +78,7 @@ Coupon: {
   createdAt: timestamp
   expiredAt: timestamp
 }
+
 Cart: {
   shape: sql_table
   +id: int {constraint: primary_key}
@@ -106,3 +108,4 @@ Category -> Product: categorizes
 Cart -> CartItem: contains
 CartItem -> Product: references
 Cart -> User: owned_by
+Order -> UserCoupon: uses

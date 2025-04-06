@@ -68,7 +68,6 @@ Order: {
   +discountAmount: Int
   +status: OrderStatus
   +createdAt: DateTime
-  +status: OrderStatus
 
   +applyCoupon(): void
   +completePayment(): void
@@ -222,6 +221,11 @@ User -> CartItem: owns {
   target-arrowhead: 1..*
 }
 Cart -> Order: creates {
+  source-arrowhead: 1
+  target-arrowhead: 1
+}
+
+Order -> UserCoupon: uses {
   source-arrowhead: 1
   target-arrowhead: 1
 }
