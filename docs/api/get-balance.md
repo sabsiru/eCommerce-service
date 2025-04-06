@@ -20,7 +20,7 @@
 ### 3. 요청
 
 - Method: `GET`
-- Endpoint: `/balance/{userId}`
+- Endpoint: `/point/{userId}`
 
 #### 3.1 Path Variable
 
@@ -35,13 +35,13 @@
 #### 4.1 성공 시
 ```
 {
-"balance": 15000,
+"point": 15000,
 "message": "잔액 조회 성공"
 }
 ```
 | 필드명     | 타입   | 설명                     |
 |---------|--------|--------------------------|
-| balance | Int    | 현재 사용자 보유 잔액 |
+| point   | Int    | 현재 사용자 보유 잔액 |
 | message | String | 처리 결과 메시지         |
 
 #### 4.2 상태 코드

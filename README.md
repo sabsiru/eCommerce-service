@@ -27,13 +27,13 @@
 ### 잔액 조회
 <details>
 <summary>보기</summary>
-    <img src="docs/diagram/sequence/get_balance.png">
+    <img src="docs/diagram/sequence/get_point.png">
 </details>
 
 ### 잔액 충전
 <details>
 <summary>보기</summary>
-    <img src="docs/diagram/sequence/charge_balance.png">
+    <img src="docs/diagram/sequence/charge_point.png">
 </details>
 
 ### 상품 조회
@@ -100,7 +100,7 @@
 # 5. API 명세서
 
 - ### [잔액 조회](docs/api/get-balance.md)
-- ### [잔액 충전](docs/api/charge-balance.md)
+- ### [잔액 충전](docs/api/charge-point)
 - ### [상품 조회](docs/api/list-products.md)
 - ### [상품 상세보기](docs/api/get-product.md)
 - ### [장바구니 추가](docs/api/add-cart.md)

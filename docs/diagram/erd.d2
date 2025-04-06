@@ -2,7 +2,7 @@ User: {
   shape: sql_table
   id: long {constraint: primary_key}
   name: string
-  balance: int
+  point: int
   createdAt: timestamp
   updatedAt: timestamp
 }
@@ -26,7 +26,7 @@ Category: {
   updatedAt: timestamp
 }
 
-BalanceHistory: {
+PointHistory: {
   shape: sql_table
   id: long {constraint: primary_key}
   userId: long {constraint: foreign_key}
@@ -101,7 +101,7 @@ Order -> OrderItem: includes
 Product -> OrderItem: ordered_in
 User -> UserCoupon: has
 Coupon -> UserCoupon: publish
-BalanceHistory -> User: history
+PointHistory -> User: history
 Category -> Product: categorizes
 Cart -> CartItem: contains
 CartItem -> Product: references

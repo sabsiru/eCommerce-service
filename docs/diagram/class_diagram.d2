@@ -2,27 +2,27 @@ User: {
   shape: class
   +id: Long
   +name: String
-  +balance: Int
+  +point: Int
   +createdAt: DateTime
 
-  +chargeBalance(): void
-  +useBalance(): void
-  +hasEnoughBalance(): Boolean
-  +getBalance(): Int
+  +chargePoint(): void
+  +usePoint(): void
+  +hasEnoughPoint(): Boolean
+  +getPoint(): Int
 }
 
-BalanceHistory: {
+PointHistory: {
   shape: class
   +id: Long
   +userId: Long
   +amount: Int
-  +type: BalanceHistoryType
-  +balanceAfter: Int
+  +type: PointHistoryType
+  +pointAfter: Int
   +createdAt: DateTime
   +relatedOrderId: Long
 }
 
-BalanceHistoryType: {
+PointHistoryType: {
   shape: class
   CHARGE
   USE
@@ -187,12 +187,12 @@ Coupon -> CouponStatus: has_status {
   target-arrowhead: 1
 }
 
-BalanceHistory -> BalanceHistoryType: has_type {
+PointHistory -> PointHistoryType: has_type {
   source-arrowhead: 1
   target-arrowhead: 1
 }
 
-BalanceHistory -> User: userId {
+PointHistory -> User: userId {
   source-arrowhead: 1
   target-arrowhead: 1
 }
