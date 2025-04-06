@@ -54,6 +54,12 @@
     <img src="docs/diagram/sequence/popular_products.png">
 </details>
 
+### 발급 가능한 쿠폰 조회
+<details>
+<summary>보기</summary>
+    <img src="docs/diagram/sequence/list-available-coupon.png">
+</details>
+
 ### 쿠폰 발급
 <details>
 <summary>보기</summary>
@@ -63,7 +69,13 @@
 ### 쿠폰 조회
 <details>
 <summary>보기</summary>
-    <img src="docs/diagram/sequence/get_coupon.png">
+    <img src="docs/diagram/sequence/list_coupon.png">
+</details>
+
+### 쿠폰 사용
+<details>
+<summary>보기</summary>
+    <img src="docs/diagram/sequence/use_coupon.png">
 </details>
 
 ### 장바구니 추가
@@ -95,10 +107,27 @@
 - ### [상위 상품 조회](docs/api/popular-products.md)
 - ### [쿠폰 발급](docs/api/issue-coupon.md)
 - ### [쿠폰 사용](docs/api/use-coupon.md)
+- ### [발급 가능 쿠폰 조회](docs/api/list-available-coupon.md)
+- ### [사용자 쿠폰 조회](docs/api/list-coupon)
 - ### [주문](docs/api/order.md)
 - ### [결제](docs/api/payments.md)
 
 ---
+# 6. Swagger UI
+- ### [잔액 조회](docs/swagger/get-balance.md)
+- ### [잔액 조회](docs/swagger/charge-balance.md)
+- ### [상품 조회](docs/swagger/list-products.md)
+- ### [상품 상세보기](docs/swagger/get-product.md)
+- ### [상위 상품 조회](docs/swagger/popular-products.md)
+- ### [발급 가능한 쿠폰 조회](docs/swagger/list-available-coupon.md)
+- ### [쿠폰 발급](docs/swagger/issue-coupon.md)
+- ### [사용자 쿠폰 조회](docs/swagger/list-coupon.md)
+- ### [쿠폰 사용](docs/swagger/use-coupon.md)
+- ### [주문](docs/swagger/order.md)
+- ### [결제](docs/swagger/payments.md)
+
+---
+
 
 ## 프로젝트
 

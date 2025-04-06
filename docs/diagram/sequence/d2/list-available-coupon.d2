@@ -1,0 +1,24 @@
+shape: sequence_diagram
+user: 사용자 {shape: person}
+api: API
+service: Service
+coupon: Coupon
+
+user.style: {
+  stroke-dash: 0
+}
+
+발급 가능한 쿠폰 조회: {
+  user -> api.t: 발급 가능한 쿠폰 조회 요청
+  api.t -> service.t: 쿠폰 목록 요청
+  service.t -> coupon.t: 쿠폰 목록 조회
+  coupon.t -> service.t: 쿠폰 목록 반환 {
+    style.stroke-dash: 4
+  }
+  service.t -> api.t: 쿠폰 목록 반환 {
+    style.stroke-dash: 4
+  }
+  api.t -> user: 쿠폰 목록 반환 {
+    style.stroke-dash: 4
+  }
+}
