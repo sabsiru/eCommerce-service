@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.domain.order;
 
-import kr.hhplus.be.server.application.dto.PopularProductRequest;
+import kr.hhplus.be.server.application.order.PopularProductRequest;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;

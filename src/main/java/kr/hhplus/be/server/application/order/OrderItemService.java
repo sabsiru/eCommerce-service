@@ -2,7 +2,6 @@ package kr.hhplus.be.server.application.order;
 
 import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderItemRepository;
-import kr.hhplus.be.server.application.dto.PopularProductRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +29,7 @@ public class OrderItemService {
         return orderItemRepository.findAllByOrderId(orderId);
     }
 
-    public List<PopularProductRequest> getTopSellingProducts() {
+    public List<PopularProductRequest> getPopularProduct() {
         LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
         // Repository의 커스텀 쿼리 메서드를 호출 (DB 연결 없이 테스트에서는 stub 처리됨)
         List<PopularProductRequest> result = orderItemRepository.findTopSellingProductDTOs(threeDaysAgo);

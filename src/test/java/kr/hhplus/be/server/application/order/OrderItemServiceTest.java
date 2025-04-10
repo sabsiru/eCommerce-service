@@ -2,7 +2,6 @@ package kr.hhplus.be.server.application.order;
 
 import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderItemRepository;
-import kr.hhplus.be.server.application.dto.PopularProductRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -120,12 +119,12 @@ class OrderItemServiceTest {
     public void 상위상품_조회() {
         // Arrange
         // Stub으로 최근 3일간 주문 항목 집계 결과를 반환할 DTO 목록 생성 (총 6건, 상위 5개만 취함)
-        PopularProductRequest dto1 = new PopularProductRequest(101L, 20L);
-        PopularProductRequest dto2 = new PopularProductRequest(102L, 18L);
-        PopularProductRequest dto3 = new PopularProductRequest(103L, 15L);
-        PopularProductRequest dto4 = new PopularProductRequest(104L, 12L);
-        PopularProductRequest dto5 = new PopularProductRequest(105L, 10L);
-        PopularProductRequest dto6 = new PopularProductRequest(106L, 8L);
+        PopularProductRequest dto1 = new PopularProductRequest(101L, 20);
+        PopularProductRequest dto2 = new PopularProductRequest(102L, 18);
+        PopularProductRequest dto3 = new PopularProductRequest(103L, 15);
+        PopularProductRequest dto4 = new PopularProductRequest(104L, 12);
+        PopularProductRequest dto5 = new PopularProductRequest(105L, 10);
+        PopularProductRequest dto6 = new PopularProductRequest(106L, 8);
         List<PopularProductRequest> stubList = Arrays.asList(dto1, dto2, dto3, dto4, dto5, dto6);
 
         // Repository 메서드 호출 시, stubList를 반환하도록 설정
@@ -133,7 +132,7 @@ class OrderItemServiceTest {
                 .thenReturn(stubList);
 
         // Act
-        List<PopularProductRequest> result = orderItemService.getTopSellingProducts();
+        List<PopularProductRequest> result = orderItemService.getPopularProduct();
 
         // Assert
         // 결과의 크기가 5개여야 함

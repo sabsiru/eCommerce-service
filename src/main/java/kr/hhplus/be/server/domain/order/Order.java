@@ -17,10 +17,10 @@ public record Order(
 
     public static Order create(Long userId, List<OrderItem> items) {
         if (userId == null) {
-            throw new IllegalArgumentException("userId는 null일 수 없습니다.");
+            throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
         }
         if (items == null || items.isEmpty()) {
-            throw new IllegalArgumentException("주문 항목은 최소 하나 이상 존재해야 합니다.");
+            throw new IllegalArgumentException("주문을 찾을 수 없습니다.");
         }
         int totalAmount = items.stream().mapToInt(OrderItem::totalPrice).sum();
 
@@ -37,7 +37,7 @@ public record Order(
 
     public Order cancel() {
         if (this.status != OrderStatus.PENDING) {
-            throw new IllegalStateException("취소는 PENDING 상태의 주문에만 가능합니다.");
+            throw new IllegalStateException("이미 결제 완료된 주문은 취소할 수 없습니다.");
         }
         return new Order(this.id, this.userId, this.items, this.totalAmount, OrderStatus.CANCEL, this.createdAt, LocalDateTime.now());
     }

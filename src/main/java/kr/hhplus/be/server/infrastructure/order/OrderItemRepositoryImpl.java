@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.infrastructure.order;
 
-import kr.hhplus.be.server.application.dto.PopularProductRequest;
+import kr.hhplus.be.server.application.order.PopularProductRequest;
 import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderItemRepository;
 import org.springframework.stereotype.Repository;

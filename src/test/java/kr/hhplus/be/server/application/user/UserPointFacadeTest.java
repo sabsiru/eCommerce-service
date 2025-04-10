@@ -34,7 +34,7 @@ class UserPointFacadeTest {
         //given
         long userId = 1L;
         long initialPoint = 1000;
-        long chargeAmount = 5000;
+        int chargeAmount = 5000;
         long expectedPoint = initialPoint + chargeAmount;
 
         User user = new User(userId, "tester", expectedPoint, LocalDateTime.now(), LocalDateTime.now());
@@ -57,7 +57,7 @@ class UserPointFacadeTest {
         // given
         long userId = 1L;
         long initialPoint = 1000L;
-        long chargeAmount = 5000L;
+        int chargeAmount = 5000;
         long expectedPoint = initialPoint + chargeAmount;
 
         // userPointService는 충전 후 업데이트된 User를 반환하도록 설정
@@ -88,7 +88,7 @@ class UserPointFacadeTest {
     void 포인트_충전시_잘못된_충전금액_입력시_예외전파() {
         // given
         long userId = 1L;
-        long chargePoint = 0L; // 0 이하이면 예외 발생 조건
+        int chargePoint = 0; // 0 이하이면 예외 발생 조건
 
         // userPointService가 잘못된 충전 금액에 대해 예외를 던지도록 설정합니다.
         when(userPointService.chargePoint(userId, chargePoint))
@@ -110,7 +110,7 @@ class UserPointFacadeTest {
         long userId = 1L;
         // 예를 들어, 사용자의 현재 포인트가 9,500,000원인 상황에서 600,000원을 충전하면,
         // 9,500,000 + 600,000 = 10,100,000원이 되어 최대 한도 10,000,000원을 초과하게 됩니다.
-        long chargeAmount = 600_000L;
+        int chargeAmount = 600_000;
 
         // userPointService의 chargePoint 메서드가 최대 한도 초과 시 IllegalArgumentException을 던지도록 설정
         when(userPointService.chargePoint(userId, chargeAmount))
@@ -130,7 +130,7 @@ class UserPointFacadeTest {
     public void 포인트_충전시_1회_최대충전한도_초과시_예외전파() throws Exception{
         // given
         long userId = 1L;
-        long chargePoint = 1_000_001L; // 100만 이상이면 예외 발생 조건
+        int chargePoint = 1_000_001; // 100만 이상이면 예외 발생 조건
 
         // userPointService가 잘못된 충전 금액에 대해 예외를 던지도록 설정합니다.
         when(userPointService.chargePoint(userId, chargePoint))
@@ -152,7 +152,7 @@ class UserPointFacadeTest {
         //given
         long userId = 1L;
         long initialPoint = 6000;
-        long useAmount = 5000;
+        int useAmount = 5000;
         long expectedPoint = initialPoint - useAmount;
 
         User user = new User(userId, "tester", expectedPoint, LocalDateTime.now(), LocalDateTime.now());
@@ -174,7 +174,7 @@ class UserPointFacadeTest {
     void 포인트_사용시_사용내역_타입_확인() {
         // given
         long userId = 1L;
-        long useAmount = 200; // 포인트 사용 금액
+        int useAmount = 200; // 포인트 사용 금액
         long initialPoint = 1000L;
         long expectedPoint = initialPoint - useAmount;
 
@@ -208,7 +208,7 @@ class UserPointFacadeTest {
         //given
         long userId = 1L;
         long initialPoint = 6000;
-        long useAmount = 5000;
+        int useAmount = 5000;
         long expectedPoint = initialPoint + useAmount;
         long orderId=1L;
 
@@ -231,7 +231,7 @@ class UserPointFacadeTest {
     void 포인트_환불시_환불내역_타입_확인() {
         // given
         long userId = 1L;
-        long refundAmount = 300; // 환불 금액
+        int refundAmount = 300; // 환불 금액
         Long orderId = 10L;     // 관련 주문 ID
         long initialPoint = 1000L;
         long expectedPoint = initialPoint + refundAmount;
