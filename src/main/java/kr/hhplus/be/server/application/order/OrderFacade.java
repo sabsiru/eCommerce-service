@@ -1,9 +1,9 @@
 package kr.hhplus.be.server.application.order;
 
-import kr.hhplus.be.server.application.dto.OrderItemRequest;
 import kr.hhplus.be.server.application.product.ProductService;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderItem;
+import kr.hhplus.be.server.interfaces.order.OrderResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,36 +30,45 @@ public class OrderFacade {
      * @return 최종 생성된 Order 객체
      * @throws IllegalStateException 재고 부족 시 예외 발생
      */
-    public Order processOrder(Long userId,
-                              List<OrderItemRequest> orderItemRequests) {
-        // 1. 각 주문 항목의 재고 확인 (재고를 가져와 주문 수량과 비교)
+    public OrderResponse processOrder(Long userId, List<OrderItemRequest> orderItemRequests) {
+        // 1. 각 주문 항목의 재고 확인
         for (OrderItemRequest param : orderItemRequests) {
             int availableStock = productService.getStock(param.getProductId());
             if (availableStock < param.getQuantity()) {
-                throw new IllegalStateException("상품 재고가 부족합니다. productId=" + param.getProductId());
+                throw new IllegalStateException("상품 재고가 부족합니다.");
             }
         }
 
-        // 2. 빈 주문 항목 리스트 주문 생성하여 order.id 획득
+        // 2. 주문 생성
         Order order = orderService.createOrder(userId, new ArrayList<>());
-        // DB 저장 후 order.id()는 실제 값(예: 1L)이 할당되어 있다고 가정
 
-        // 3. 생성된 주문의 ID를 사용해 각 주문 항목 생성 및 저장
+        // 3. 주문 항목 생성
         List<OrderItem> createdItems = new ArrayList<>();
         for (OrderItemRequest param : orderItemRequests) {
             OrderItem item = orderItemService.createOrderItem(order.id(), param.getProductId(), param.getQuantity(), param.getOrderPrice());
             createdItems.add(item);
         }
 
-        // 4. 생성된 주문 항목들을 주문에 업데이트 (업데이트 메서드는 도메인 요구사항에 따라 구현)
+        // 4. 주문 항목 업데이트
         order = orderService.updateOrderItems(order.id(), createdItems);
 
-        return order;
+        // 5. DTO로 변환하여 반환
+        return OrderResponse.from(order);
     }
 
-    //메서드 재사용
+    public Order cancelOrder(Long orderId) {
+        orderService.getOrderOrThrow(orderId);
+        return orderService.cancelOrder(orderId);
+    }
+
+    // 메서드 재사용
     public List<Order> getOrdersByUser(Long userId) {
         return orderService.getOrdersByUser(userId);
+    }
+
+    // 메서드 재사용
+    public List<PopularProductRequest> getPopularProduct() {
+        return orderItemService.getPopularProduct();
     }
 
 

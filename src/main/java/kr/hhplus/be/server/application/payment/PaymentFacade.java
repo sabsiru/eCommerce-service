@@ -31,10 +31,9 @@ public class PaymentFacade {
      *
      * @param orderId       주문 ID
      * @param paymentAmount 결제 금액
-     * @param usePointAmount 차감할 사용자 포인트
      * @return 최종적으로 결제 완료된 Payment 객체
      */
-    public Payment processPayment(Long orderId, int paymentAmount, int usePointAmount) {
+    public Payment processPayment(Long orderId, int paymentAmount) {
         // 1. 주문 조회
         Order order = orderService.getOrderOrThrow(orderId);
 
@@ -46,7 +45,7 @@ public class PaymentFacade {
         }
 
         // 3. 사용자 포인트 차감: userPointFacade.usePoint()에서 포인트 검증 및 차감 처리
-        userPointFacade.usePoint(order.userId(), usePointAmount);
+        userPointFacade.usePoint(order.userId(), paymentAmount);
 
         // 4. 주문 상태 업데이트: 주문을 PAID 상태로 전환
         order = orderService.payOrder(orderId);
@@ -56,5 +55,25 @@ public class PaymentFacade {
         payment = paymentService.completePayment(payment.id());
 
         return payment;
+    }
+
+    public Payment processRefund(Long orderId) {
+        // 1. 주문 조회 및 상태 변경 (환불 처리)
+        Order order = orderService.getOrderOrThrow(orderId);
+
+        // 2. 상품 재고 증가 :
+        List<?> items = order.items();
+        for (Object obj : items) {
+            OrderItem item = (OrderItem) obj;
+            productService.increaseStock(item.productId(), item.quantity());
+        }
+
+        // 3. 사용자 포인트 충전: 상태 환불
+        userPointFacade.refundPoint(order.userId(), order.totalAmount(), order.id());
+
+        // 4. 환불 상태 업데이트
+        Payment refundPayment = paymentService.refundPayment(orderId);// 업데이트된 주문을 저장
+
+        return refundPayment;
     }
 }

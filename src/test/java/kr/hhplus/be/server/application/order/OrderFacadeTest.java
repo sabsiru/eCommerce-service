@@ -1,10 +1,10 @@
 package kr.hhplus.be.server.application.order;
 
-import kr.hhplus.be.server.application.dto.OrderItemRequest;
 import kr.hhplus.be.server.application.product.ProductService;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderStatus;
+import kr.hhplus.be.server.interfaces.order.OrderResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -72,7 +73,7 @@ class OrderFacadeTest {
                 .thenReturn(updatedOrder);
 
         // When
-        Order finalOrder = orderFacade.processOrder(userId, params);
+        OrderResponse finalOrder = orderFacade.processOrder(userId, params);
 
         // Then
         assertEquals(expectedTotal, finalOrder.totalAmount(), "총 주문 금액이 올바르게 계산되어야 합니다.");
@@ -109,7 +110,30 @@ class OrderFacadeTest {
         verify(orderItemService, never()).createOrderItem(anyLong(), anyLong(), anyInt(), anyInt());
         verify(orderService, never()).updateOrderItems(anyLong(), any());
     }
+    @Test
+    void 주문취소_성공() {
+        // given
+        Long orderId = 1L;
+        LocalDateTime now = LocalDateTime.now();
+        // 기존 주문: 상태가 PENDING인 주문. (쿠폰 등은 제거된 상태로 가정)
+        Order existingOrder = new Order(orderId, 1L, Collections.emptyList(), 25000, OrderStatus.PENDING, now, now);
 
+        // 주문 취소 시 도메인 로직(Order.cancel())에 의해 주문 상태가 CANCEL로 전환된 새로운 Order 객체 반환
+        Order cancelledOrder = new Order(orderId, existingOrder.userId(), Collections.emptyList(), 25000, OrderStatus.CANCEL, now, now.plusSeconds(1));
+
+        // Stub 처리: 주문 조회 시 기존 주문을 반환
+        when(orderService.getOrderOrThrow(orderId)).thenReturn(existingOrder);
+        // Stub 처리: 기존 주문에서 cancel() 호출 후, updateOrder()를 통해 취소된 주문이 저장되어 반환됨
+        when(orderService.cancelOrder(existingOrder.id())).thenReturn(cancelledOrder);
+
+        // when
+        Order result = orderFacade.cancelOrder(orderId);
+
+        // then
+        assertEquals(OrderStatus.CANCEL, result.status());
+        verify(orderService, times(1)).getOrderOrThrow(orderId);
+        verify(orderService, times(1)).cancelOrder(existingOrder.id());
+    }
 
 
 
