@@ -16,6 +16,12 @@ public class PaymentService {
         return paymentRepository.save(payment);
     }
 
+    // 쿠폰 사용하여 결제 초기화 (couponId를 포함)
+    public Payment initiatePayment(long orderId, int amount, Long couponId) {
+        Payment payment = Payment.initiate(orderId, amount, couponId);
+        return paymentRepository.save(payment);
+    }
+
     public Payment completePayment(Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다. paymentId=" + paymentId));
