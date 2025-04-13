@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.payment;
 
-import org.junit.jupiter.api.DisplayName;
+import kr.hhplus.be.server.domain.coupon.Coupon;
+import kr.hhplus.be.server.domain.coupon.CouponStatus;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -91,4 +92,80 @@ class PaymentTest {
                 "PENDING 상태에서 refund() 호출 시 예외가 발생해야 합니다.");
         assertEquals("결제가 진행 중인 상태가 아닙니다.", ex.getMessage());
     }
+
+    @Test
+    void 쿠폰없이_초기화시_쿠폰아이디는_null이어야함() {
+        long orderId = 1L;
+        int amount = 1000;
+
+        Payment payment = Payment.initiate(orderId, amount);
+
+        assertNotNull(payment);
+        assertEquals(orderId, payment.orderId());
+        assertEquals(amount, payment.amount());
+        assertEquals(PaymentStatus.PENDING, payment.status());
+        // couponId가 null이어야 함
+        assertNull(payment.couponId());
+        // 생성 및 업데이트 시간은 null이 아님
+        assertNotNull(payment.createdAt());
+        assertNotNull(payment.updatedAt());
+    }
+
+    @Test
+    void 쿠폰포함_초기화시_쿠폰아이디가_설정되어야함() {
+        long orderId = 1L;
+        int amount = 1000;
+        Long couponId = 500L;
+
+        Payment payment = Payment.initiate(orderId, amount, couponId);
+
+        assertNotNull(payment);
+        assertEquals(orderId, payment.orderId());
+        assertEquals(amount, payment.amount());
+        assertEquals(PaymentStatus.PENDING, payment.status());
+        // couponId가 올바르게 저장되었는지 확인
+        assertEquals(couponId, payment.couponId());
+    }
+
+    @Test
+    void 결제완료시_쿠폰아이디가_유지되어야함() {
+        long orderId = 1L;
+        int amount = 1000;
+        Long couponId = 500L;
+
+        // couponId가 포함된 Payment 생성
+        Payment initiatedPayment = Payment.initiate(orderId, amount, couponId);
+        // Payment id는 null로 생성되었으므로, 임의의 값 부여 (실제 도메인에서는 DB에서 설정)
+        Payment paymentWithId = new Payment(10L, initiatedPayment.orderId(), initiatedPayment.amount(),
+                initiatedPayment.status(), initiatedPayment.createdAt(), initiatedPayment.updatedAt(), initiatedPayment.couponId());
+
+        // complete() 호출
+        Payment completedPayment = paymentWithId.complete();
+
+        // couponId가 그대로 유지되는지 확인
+        assertEquals(couponId, completedPayment.couponId());
+        assertEquals(PaymentStatus.COMPLETED, completedPayment.status());
+    }
+
+    @Test
+    void 환불시_쿠폰아이디가_유지되어야함() {
+        long orderId = 1L;
+        int amount = 1000;
+        Long couponId = 500L;
+
+        // couponId가 포함된 Payment 생성 및 complete()를 통해 상태 변경
+        Payment initiatedPayment = Payment.initiate(orderId, amount, couponId);
+        Payment paymentWithId = new Payment(10L, initiatedPayment.orderId(), initiatedPayment.amount(),
+                initiatedPayment.status(), initiatedPayment.createdAt(), initiatedPayment.updatedAt(), initiatedPayment.couponId());
+        Payment completedPayment = paymentWithId.complete();
+
+        // refund() 호출
+        Payment refundPayment = completedPayment.refund();
+
+        // couponId가 그대로 유지되는지 확인
+        assertEquals(couponId, refundPayment.couponId());
+        assertEquals(PaymentStatus.REFUND, refundPayment.status());
+    }
+
+
 }

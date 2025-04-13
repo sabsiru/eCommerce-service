@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.hhplus.be.server.application.payment.PaymentFacade;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentStatus;
-import kr.hhplus.be.server.domain.user.User;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -16,12 +14,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(PaymentController.class)
@@ -37,12 +33,12 @@ class PaymentControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void 결제_성공() throws Exception {
+    void 결제_성공_쿠폰없을시() throws Exception {
         // given
         Long orderId = 1L;
         PaymentRequest request = new PaymentRequest(10000);
 
-        Payment payment = new Payment(1L, orderId, 10000, PaymentStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now());
+        Payment payment = new Payment(1L, orderId, 10000, PaymentStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now(),null);
         when(paymentFacade.processPayment(eq(orderId), eq(10000)))
                 .thenReturn(payment);
 
@@ -54,14 +50,42 @@ class PaymentControllerTest {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.orderId").value(orderId))
                 .andExpect(jsonPath("$.amount").value(10000))
-                .andExpect(jsonPath("$.status").value("COMPLETED"));
+                .andExpect(jsonPath("$.status").value("COMPLETED"))
+                .andExpect(jsonPath("$.couponId").isEmpty());
     }
 
     @Test
-    void 결제_환불_성공() throws Exception {
+    void 결제_성공_쿠폰이있을시() throws Exception {
+        // given
+        Long orderId = 1L;
+        PaymentRequest request = new PaymentRequest(15000);
+
+        Long couponId = 500L; // 결제 시 쿠폰 사용이 있는 경우
+
+        // 20% 할인 쿠폰이지만 최대 할인액 2,000원 적용: 15000 * 0.2 = 3000이 계산되나, 최대 2,000원으로 제한.
+        int finalPaymentAmount = 15000 - 2000; // 13000
+
+        Payment payment = new Payment(1L, orderId, finalPaymentAmount, PaymentStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now(),couponId);
+        when(paymentFacade.processPayment(eq(orderId), eq(15000)))
+                .thenReturn(payment);
+
+        // when & then
+        mockMvc.perform(patch("/payments/{orderId}/pay", orderId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.orderId").value(orderId))
+                .andExpect(jsonPath("$.amount").value(finalPaymentAmount))
+                .andExpect(jsonPath("$.status").value("COMPLETED"))
+                .andExpect(jsonPath("$.couponId").value(couponId));
+    }
+
+    @Test
+    void 결제_환불_성공_쿠폰없을때() throws Exception {
         // given
         long orderId = 1L;
-        Payment refundPayment = new Payment(10L, orderId, 30000, PaymentStatus.REFUND, LocalDateTime.now(), LocalDateTime.now());
+        Payment refundPayment = new Payment(10L, orderId, 30000, PaymentStatus.REFUND, LocalDateTime.now(), LocalDateTime.now(),null);
 
         when(paymentFacade.processRefund(orderId)).thenReturn(refundPayment);
 
@@ -71,7 +95,36 @@ class PaymentControllerTest {
                 .andExpect(jsonPath("$.id").value(refundPayment.id()))
                 .andExpect(jsonPath("$.orderId").value(orderId))
                 .andExpect(jsonPath("$.amount").value(refundPayment.amount()))
-                .andExpect(jsonPath("$.status").value("REFUND"));
+                .andExpect(jsonPath("$.status").value("REFUND"))
+                .andExpect(jsonPath("$.couponId").doesNotExist());
+    }
+
+    @Test
+    void 결제_환불_성공_쿠폰있을때() throws Exception {
+        // given
+        long orderId = 1L;
+        Long couponId = 500L;
+        // 환불 Payment: couponId가 존재하는 경우
+        Payment refundPayment = new Payment(
+                10L,
+                orderId,
+                25000,
+                PaymentStatus.REFUND,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                couponId
+        );
+        when(paymentFacade.processRefund(eq(orderId))).thenReturn(refundPayment);
+
+        // when & then
+        mockMvc.perform(patch("/payments/{orderId}/refund", orderId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(refundPayment.id()))
+                .andExpect(jsonPath("$.orderId").value(orderId))
+                .andExpect(jsonPath("$.amount").value(refundPayment.amount()))
+                .andExpect(jsonPath("$.status").value("REFUND"))
+                .andExpect(jsonPath("$.couponId").value(couponId));
     }
 
     @Test
