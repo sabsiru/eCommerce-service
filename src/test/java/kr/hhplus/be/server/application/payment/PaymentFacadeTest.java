@@ -1,0 +1,196 @@
+package kr.hhplus.be.server.application.payment;
+
+import kr.hhplus.be.server.application.order.OrderService;
+import kr.hhplus.be.server.application.product.ProductService;
+import kr.hhplus.be.server.application.user.UserPointFacade;
+import kr.hhplus.be.server.domain.order.Order;
+import kr.hhplus.be.server.domain.order.OrderItem;
+import kr.hhplus.be.server.domain.order.OrderStatus;
+import kr.hhplus.be.server.domain.payment.Payment;
+import kr.hhplus.be.server.domain.payment.PaymentStatus;
+import kr.hhplus.be.server.domain.product.Product;
+import kr.hhplus.be.server.domain.user.User;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+public class PaymentFacadeTest {
+
+    @InjectMocks
+    private PaymentFacade paymentFacade;
+
+    @Mock
+    private OrderService orderService;
+
+    @Mock
+    private ProductService productService;
+
+    @Mock
+    private UserPointFacade userPointFacade;
+
+    @Mock
+    private PaymentService paymentService;
+
+    @Test
+    void 결제_정상_작동() {
+        // Arrange
+        Long orderId = 1L;
+        int paymentAmount = 100_000;
+
+        LocalDateTime now = LocalDateTime.now();
+        // Order 객체 생성 (order.items에 1개 주문 항목 있음)
+        OrderItem orderItem = new OrderItem(1L, orderId, 101L, 5, 5000, now);  // 5 * 5000 = 25000
+        Order order = new Order(orderId, 1L, List.of(orderItem), 25000, OrderStatus.PENDING, now, now);
+        when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
+
+        // productService.decreaseStock()가 Product 객체를 반환하도록 Stub 처리
+        Product dummyProduct = new Product(101L, "Dummy Product", 5000, 45, 1L, LocalDateTime.now(), LocalDateTime.now());
+        when(productService.decreaseStock(101L, 5)).thenReturn(dummyProduct);
+
+        // userPointFacade.usePoint()가 업데이트된 User 객체를 반환하도록 Stub 처리
+        // 가정: User domain record: id, name, point, createdAt, updatedAt
+        User updatedUser = new User(order.userId(), "TestUser", 40000, now, now);
+        when(userPointFacade.usePoint(order.userId(), paymentAmount)).thenReturn(updatedUser);
+
+        // orderService.payOrder()를 통해 주문 상태 PAID로 변경된 Order 반환
+        Order paidOrder = new Order(orderId, order.userId(), order.items(), order.totalAmount(), OrderStatus.PAID, now, now.plusSeconds(1));
+        when(orderService.payOrder(orderId)).thenReturn(paidOrder);
+
+        // PaymentService의 initiatePayment() Stub 처리
+        Payment initiatedPayment = Payment.initiate(orderId, paymentAmount);
+        Payment savedPayment = new Payment(1L, orderId, paymentAmount, PaymentStatus.PENDING, now, now);
+        when(paymentService.initiatePayment(orderId, paymentAmount)).thenReturn(savedPayment);
+
+        // PaymentService의 completePayment() Stub 처리 (PENDING -> COMPLETED)
+        Payment completedPayment = new Payment(1L, orderId, paymentAmount, PaymentStatus.COMPLETED, now, now.plusSeconds(2));
+        when(paymentService.completePayment(savedPayment.id())).thenReturn(completedPayment);
+
+        // Act
+        Payment result = paymentFacade.processPayment(orderId, paymentAmount);
+
+        // Assert
+        assertNotNull(result, "결제 결과 Payment 객체는 null이 아니어야 합니다.");
+        assertEquals(PaymentStatus.COMPLETED, result.status(), "최종 결제 상태는 COMPLETED여야 합니다.");
+
+        verify(orderService, times(1)).getOrderOrThrow(orderId);
+        verify(productService, times(1)).decreaseStock(101L, 5);
+        verify(userPointFacade, times(1)).usePoint(order.userId(), paymentAmount);
+        verify(orderService, times(1)).payOrder(orderId);
+        verify(paymentService, times(1)).initiatePayment(orderId, paymentAmount);
+        verify(paymentService, times(1)).completePayment(savedPayment.id());
+    }
+
+    @Test
+    void 결제시_재고부족으로_예외발생() {
+        // Arrange
+        Long orderId = 1L;
+        int paymentAmount = 100_000;
+        LocalDateTime now = LocalDateTime.now();
+
+        // Order 생성 (주문 항목: 5개 주문, 가정)
+        OrderItem orderItem = new OrderItem(1L, orderId, 101L, 5, 5000, now);
+        Order order = new Order(orderId, 1L, List.of(orderItem), 25000, OrderStatus.PENDING, now, now);
+        when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
+
+        // productService.decreaseStock() 호출 시, 재고 부족으로 예외를 발생하도록 설정
+        when(productService.decreaseStock(101L, 5))
+                .thenThrow(new IllegalStateException("상품 재고가 부족합니다. productId=101"));
+
+        // Act & Assert
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> paymentFacade.processPayment(orderId, paymentAmount));
+        assertEquals("상품 재고가 부족합니다. productId=101", ex.getMessage());
+
+        verify(orderService, times(1)).getOrderOrThrow(orderId);
+        verify(productService, times(1)).decreaseStock(101L, 5);
+        // 사용자 포인트 차감, 주문 상태 및 결제 관련 메서드는 호출되지 않아야 함
+        verify(userPointFacade, never()).usePoint(anyLong(), anyInt());
+        verify(orderService, never()).payOrder(anyLong());
+        verify(paymentService, never()).initiatePayment(anyLong(), anyInt());
+    }
+
+    /**
+     * 사용자 포인트 부족 실패 테스트: userPointFacade.usePoint() 호출 시, 포인트 부족 예외 발생
+     */
+    @Test
+    void 결제시_포인트부족으로_예외발생() {
+        // Arrange
+        Long orderId = 1L;
+        int paymentAmount = 100_000;
+        LocalDateTime now = LocalDateTime.now();
+
+        // Order 생성 (주문 항목: 5개 주문)
+        OrderItem orderItem = new OrderItem(1L, orderId, 101L, 5, 5000, now);
+        Order order = new Order(orderId, 1L, List.of(orderItem), 25000, OrderStatus.PENDING, now, now);
+        when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
+
+        // productService.decreaseStock()는 정상적으로 처리 (반환값 Dummy Product)
+        Product dummyProduct = new Product(101L, "Dummy Product", 5000, 45, 1L, LocalDateTime.now(), LocalDateTime.now());
+        when(productService.decreaseStock(101L, 5)).thenReturn(dummyProduct);
+
+        // userPointFacade.usePoint() 호출 시, 사용자 포인트 부족으로 예외 발생하도록 설정
+        when(userPointFacade.usePoint(order.userId(), paymentAmount))
+                .thenThrow(new IllegalStateException("사용자 포인트가 부족합니다."));
+
+        // Act & Assert
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> paymentFacade.processPayment(orderId, paymentAmount));
+        assertEquals("사용자 포인트가 부족합니다.", ex.getMessage());
+
+        verify(orderService, times(1)).getOrderOrThrow(orderId);
+        verify(productService, times(1)).decreaseStock(101L, 5);
+        verify(userPointFacade, times(1)).usePoint(order.userId(), paymentAmount);
+        // 결제 관련 메서드는 호출되지 않아야 함
+        verify(orderService, never()).payOrder(anyLong());
+        verify(paymentService, never()).initiatePayment(anyLong(), anyInt());
+    }
+
+    @Test
+    void 환불_정상처리() {
+        // 준비 (Arrange)
+        Long orderId = 1L;
+        int refundAmount = 25000; // 주문의 총액이 25000이라고 가정
+        LocalDateTime now = LocalDateTime.now();
+
+        // 1. 주문 조회: 주문에 포함된 주문 항목이 1건 있다고 가정 (예: 5개 주문, 5000 단가 → 총액 25000)
+        OrderItem orderItem = new OrderItem(1L, orderId, 101L, 5, 5000, now);
+        Order order = new Order(orderId, 1L, List.of(orderItem), 25000, OrderStatus.PENDING, now, now);
+        when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
+
+        // 2. 상품 재고 증가: 각 주문 항목에 대해 increaseStock()를 호출하면, 해당 Product 객체를 반환하도록 Stub 처리
+        // 각 주문 항목별로 주문 수량만큼 재고가 복원됨. (여기서는 101번 상품, 주문 수량 5)
+        Product dummyProduct = new Product(101L, "상품 A", 5000, 55, 1L, now, now);
+        when(productService.increaseStock(eq(101L), eq(orderItem.quantity()))).thenReturn(dummyProduct);
+
+        // 3. 사용자 포인트 환불(복원): userPointFacade.refundPoint() 호출 시, 복원된 User 객체를 반환하도록 Stub 처리
+        // 예를 들어, 환불 시 주문의 총액(25000)을 다시 충전한다고 가정
+        User refundedUser = new User(order.userId(), "테스터", 25000, now.minusDays(1), now);
+        when(userPointFacade.refundPoint(1L, 25000, 1L))
+                .thenReturn(refundedUser);
+
+        // 4. 환불 상태 업데이트: PaymentService.refundPayment() 호출 시, 환불 처리된 Payment 객체 반환
+        Payment dummyPayment = new Payment(1L, 1L, 25000, PaymentStatus.REFUND, now, now.plusSeconds(2)); // Payment.refund()는 환불 Payment 객체를 생성하는 정적 팩토리 메서드라 가정
+        when(paymentService.refundPayment(orderId)).thenReturn(dummyPayment);
+
+        // 실행 (Act)
+        Payment result = paymentFacade.processRefund(orderId);
+
+        // 검증 (Assert)
+        assertEquals(dummyPayment, result);
+
+        verify(orderService, times(1)).getOrderOrThrow(orderId);
+        verify(productService, times(1)).increaseStock(eq(101L), eq(orderItem.quantity()));
+        verify(userPointFacade, times(1)).refundPoint(eq(order.userId()), eq(order.totalAmount()), eq(order.id()));
+        verify(paymentService, times(1)).refundPayment(orderId);
+    }
+
+}
