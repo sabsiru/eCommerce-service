@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.order;
 
 import kr.hhplus.be.server.application.product.ProductService;
+import kr.hhplus.be.server.application.user.UserPointService;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderStatus;
@@ -28,6 +29,12 @@ class OrderFacadeTest {
     @Mock
     private ProductService productService;
 
+    @Mock
+    private OrderItemService orderItemService;
+
+    @Mock
+    private UserPointService userPointService;
+
     @Test
     void 주문_프로세스_성공() {
         Long userId = 1L;
@@ -35,7 +42,7 @@ class OrderFacadeTest {
         OrderItemCommand req2 = new OrderItemCommand(102L, 1, 20000);
         List<OrderItemCommand> requestList = List.of(req1, req2);
 
-        CreateOrderCommand command = new CreateOrderCommand();
+        CreateOrderCommand command = new CreateOrderCommand(userId,requestList);
 
         doNothing().when(productService).checkStock(101L, 2);
         doNothing().when(productService).checkStock(102L, 1);
@@ -43,7 +50,7 @@ class OrderFacadeTest {
         Order mockOrder = mock(Order.class);
         when(orderService.save(any(Order.class))).thenReturn(mockOrder);
         when(mockOrder.getItems()).thenReturn(List.of(mock(OrderItem.class), mock(OrderItem.class)));
-        when(mockOrder.calculateTotalAmount()).thenReturn(50000);
+        when(mockOrder.getTotalAmount()).thenReturn(50000);
 
         // when
         OrderResponse response = orderFacade.processOrder(command);
@@ -63,7 +70,7 @@ class OrderFacadeTest {
         OrderItemCommand request = new OrderItemCommand(101L, 10, 5000);
         List<OrderItemCommand> requestList = List.of(request);
 
-        CreateOrderCommand command = new CreateOrderCommand();
+        CreateOrderCommand command = new CreateOrderCommand(userId,requestList);
 
         doThrow(new IllegalStateException("상품 재고가 부족합니다. productId=101"))
                 .when(productService).checkStock(101L, 10);

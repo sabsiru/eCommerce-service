@@ -146,7 +146,7 @@ class UserPointServiceTest {
         ;
 
         //when
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> {
+        IllegalStateException e = assertThrows(IllegalStateException.class, () -> {
             userPointService.usePoint(userId, useAmount);
         });
 

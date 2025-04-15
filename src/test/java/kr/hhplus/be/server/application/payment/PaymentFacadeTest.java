@@ -226,16 +226,10 @@ public class PaymentFacadeTest {
     void 결제상태가_대기일때_환불_실패() {
         // given
         Long orderId = 1L;
-        Long userId = 10L;
         int paymentAmount = 10000;
-
-        OrderItem item = OrderItem.create(mock(Order.class), 101L, 2, 5000);
-        OrderItemCommand command = new OrderItemCommand(101L, 1, 10000);
-        Order dummyOrder = Order.create(userId, List.of(command));
 
         Payment pendingPayment = Payment.withoutCoupon(orderId, paymentAmount);  // 상태는 PENDING
 
-        when(orderService.getOrderOrThrow(orderId)).thenReturn(dummyOrder);
         when(paymentService.refundPayment(orderId)).thenAnswer(invocation -> {
             pendingPayment.refund(); // 여기서 예외 발생
             return pendingPayment;

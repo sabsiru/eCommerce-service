@@ -82,8 +82,8 @@ public class CouponControllerTest {
         String expectedJson = objectMapper.writeValueAsString(userCoupon);
 
         // when & then
-        // 경로 변수로 userId를 받는 형식: /coupons/{userId}issue
-        mockMvc.perform(post("/coupons/{userId}issue", userId)
+        // 경로 변수로 userId를 받는 형식: /coupons/{userId}/issue
+        mockMvc.perform(post("/coupons/{userId}/issue", userId)
                         .param("couponId", couponId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())

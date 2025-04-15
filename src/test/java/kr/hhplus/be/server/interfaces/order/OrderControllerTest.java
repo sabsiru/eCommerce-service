@@ -6,6 +6,7 @@ import kr.hhplus.be.server.application.order.OrderFacade;
 import kr.hhplus.be.server.application.order.OrderItemCommand;
 import kr.hhplus.be.server.application.product.ProductService;
 import kr.hhplus.be.server.domain.order.Order;
+import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderStatus;
 import kr.hhplus.be.server.domain.product.Product;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +22,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -77,10 +79,9 @@ public class OrderControllerTest {
                 .status(OrderStatus.PENDING)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .items(List.of(OrderItem.create(mock(Order.class), 101L, 1, 10000)))
                 .build();
-
         when(orderFacade.getOrdersByUser(userId)).thenReturn(List.of(order));
-
         mockMvc.perform(get("/orders/{userId}", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(order.getId()))
@@ -99,6 +100,7 @@ public class OrderControllerTest {
                 .status(OrderStatus.CANCEL)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .items(List.of(OrderItem.create(mock(Order.class), 101L, 1, 10000)))
                 .build();
 
         when(orderFacade.cancelOrder(orderId)).thenReturn(canceledOrder);

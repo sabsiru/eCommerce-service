@@ -202,7 +202,7 @@ class ProductServiceTest {
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
         // when & then
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+        IllegalStateException e = assertThrows(IllegalStateException.class,
                 () -> productService.decreaseStock(productId, purchaseQuantity));
         assertEquals("재고가 부족합니다.", e.getMessage());
 
