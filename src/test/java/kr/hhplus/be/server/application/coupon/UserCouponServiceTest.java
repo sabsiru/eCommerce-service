@@ -27,7 +27,6 @@ class UserCouponServiceTest {
     private UserCouponRepository userCouponRepository;
 
     @Test
-    @DisplayName("사용자 쿠폰 저장 - 성공")
     void 쿠폰_저장_성공() {
         // given
         UserCoupon userCoupon = new UserCoupon(1L, 1L, 1L, UserCouponStatus.ISSUED, LocalDateTime.now(), null);
@@ -53,7 +52,7 @@ class UserCouponServiceTest {
 
         // then
         assertNotNull(result);
-        assertEquals(userCouponId, result.id());
+        assertEquals(userCouponId, result.getId());
         verify(userCouponRepository, times(1)).findById(userCouponId);
     }
 
@@ -97,7 +96,7 @@ class UserCouponServiceTest {
     }
 
     @Test
-    void useCoupon_성공_테스트() {
+    void 쿠폰_사용_성공_테스트() {
         // given
         Long userCouponId = 1L;
         Long userId = 100L;
@@ -109,21 +108,20 @@ class UserCouponServiceTest {
         UserCoupon usedCoupon = new UserCoupon(userCouponId, userId, couponId, UserCouponStatus.USED, issuedAt, LocalDateTime.now());
 
         when(userCouponRepository.findById(userCouponId)).thenReturn(Optional.of(coupon));
-        when(userCouponRepository.save(any(UserCoupon.class))).thenReturn(usedCoupon);
 
         // when
         UserCoupon result = userCouponService.useCoupon(userCouponId);
 
         // then
         assertNotNull(result);
-        assertEquals(UserCouponStatus.USED, result.status());
-        assertNotNull(result.usedAt());
+        assertEquals(UserCouponStatus.USED, result.getStatus());
+        assertNotNull(result.getUsedAt());
         verify(userCouponRepository, times(1)).findById(userCouponId);
-        verify(userCouponRepository, times(1)).save(any(UserCoupon.class));
+        verify(userCouponRepository, never()).save(any(UserCoupon.class));
     }
 
     @Test
-    void refundCoupon_성공_테스트() {
+    void 쿠폰반환_성공_테스트() {
         // given
         Long userCouponId = 1L;
         Long userId = 100L;
@@ -136,21 +134,20 @@ class UserCouponServiceTest {
         UserCoupon refundedCoupon = new UserCoupon(userCouponId, userId, couponId, UserCouponStatus.ISSUED, issuedAt, null);
 
         when(userCouponRepository.findById(userCouponId)).thenReturn(Optional.of(usedCoupon));
-        when(userCouponRepository.save(any(UserCoupon.class))).thenReturn(refundedCoupon);
 
         // when
         UserCoupon result = userCouponService.refundCoupon(userCouponId);
 
         // then
         assertNotNull(result);
-        assertEquals(UserCouponStatus.ISSUED, result.status());
-        assertNull(result.usedAt());
+        assertEquals(UserCouponStatus.ISSUED, result.getStatus());
+        assertNull(result.getUsedAt());
         verify(userCouponRepository, times(1)).findById(userCouponId);
-        verify(userCouponRepository, times(1)).save(any(UserCoupon.class));
+        verify(userCouponRepository, never()).save(any(UserCoupon.class));
     }
 
     @Test
-    void refundCoupon_실패_테스트_사용상태아님() {
+    void 쿠폰반환_실패_테스트_사용상태아님() {
         // given
         Long userCouponId = 1L;
         Long userId = 100L;

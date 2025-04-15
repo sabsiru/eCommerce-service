@@ -102,7 +102,7 @@ public class CouponControllerTest {
         String expectedMessage = "이미 발급받은 쿠폰입니다.";
 
         // when & then
-        mockMvc.perform(post("/coupons/{userId}issue", userId)
+        mockMvc.perform(post("/coupons/{userId}/issue", userId)
                         .param("couponId", couponId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())

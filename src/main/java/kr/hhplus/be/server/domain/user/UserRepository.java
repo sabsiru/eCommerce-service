@@ -1,11 +1,12 @@
 package kr.hhplus.be.server.domain.user;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface UserRepository {
-    Optional<User> findById(Long userId);
-    User save(User user);
+public interface UserRepository extends JpaRepository<User, Long> {
+    //Optional<User> findById(Long userId);
+    //User save(User user);
 }

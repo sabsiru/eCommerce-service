@@ -18,7 +18,7 @@ public class CouponController {
      * 사용자에게 쿠폰 발급 엔드포인트
      * 예: POST /coupons/issue?userId=100&couponId=500
      */
-    @PostMapping("/{userId}issue")
+    @PostMapping("/{userId}/issue")
     @ResponseStatus(HttpStatus.CREATED)
     public UserCoupon issueCoupon(@PathVariable Long userId,
                                   @RequestParam Long couponId) {

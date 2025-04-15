@@ -14,10 +14,10 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
 
-
-    public Order createOrder(Long userId, List<OrderItem> items) {
-        Order order = Order.create(userId, items);
-        return orderRepository.save(order);
+    public Order createOrder(CreateOrderCommand command) {
+        return orderRepository.save(
+                Order.create(command.getUserId(), command.getOrderItemCommands())
+        );
     }
 
     public Order getOrderOrThrow(Long orderId) {
@@ -31,28 +31,27 @@ public class OrderService {
 
     public Order payOrder(Long orderId) {
         Order order = getOrderOrThrow(orderId);
-        Order updatedOrder = order.pay();
-        return orderRepository.save(updatedOrder);
+        order.pay();  // 내부 상태 변경
+        return order;
     }
 
     public Order cancelOrder(Long orderId) {
         Order order = getOrderOrThrow(orderId);
-        Order updatedOrder = order.cancel();
-        return orderRepository.save(updatedOrder);
+        order.cancel();  // 내부 상태 변경
+        return order;
     }
 
-
     public Order updateOrderItems(Long orderId, List<OrderItem> newItems) {
-        // 해당 주문을 조회
         Order order = getOrderOrThrow(orderId);
-        // 주문 항목 목록 업데이트를 통해 새로운 Order 객체 생성
-        Order updatedOrder = order.updateItems(newItems);
-        // 새로운 Order 객체를 Repository에 저장하여 반영한 후 반환
-
-        return orderRepository.save(updatedOrder);
+        order.updateItems(newItems);  // 내부 리스트 갱신 및 총합 재계산
+        return order;
     }
 
     public List<Order> getOrdersByUser(Long userId) {
         return orderRepository.findByUserId(userId);
+    }
+
+    public Order save(Order order) {
+        return orderRepository.save(order);
     }
 }

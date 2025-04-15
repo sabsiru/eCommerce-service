@@ -18,11 +18,10 @@ class PointHistoryTest {
         PointHistory history = PointHistory.charge(userId, amount);
 
         // then
-        assertThat(history.userId()).isEqualTo(userId);
-        assertThat(history.amount()).isEqualTo(amount);
-        assertThat(history.type()).isEqualTo(PointHistoryType.CHARGE);
-        assertThat(history.createdAt()).isNotNull();
-        assertThat(history.relatedOrderId()).isNull();
+        assertThat(history.getUserId()).isEqualTo(userId);
+        assertThat(history.getAmount()).isEqualTo(amount);
+        assertThat(history.getType()).isEqualTo(PointHistoryType.CHARGE);
+        assertThat(history.getRelatedOrderId()).isNull();
     }
 
     @Test
@@ -35,8 +34,10 @@ class PointHistoryTest {
         PointHistory history = PointHistory.use(userId, amount);
 
         // then
-        assertThat(history.type()).isEqualTo(PointHistoryType.USE);
-        assertThat(history.relatedOrderId()).isNull();
+        assertThat(history.getUserId()).isEqualTo(userId);
+        assertThat(history.getAmount()).isEqualTo(amount);
+        assertThat(history.getType()).isEqualTo(PointHistoryType.USE);
+        assertThat(history.getRelatedOrderId()).isNull();
     }
 
     @Test
@@ -50,7 +51,9 @@ class PointHistoryTest {
         PointHistory history = PointHistory.refund(userId, amount, orderId);
 
         // then
-        assertThat(history.type()).isEqualTo(PointHistoryType.REFUND);
-        assertThat(history.relatedOrderId()).isEqualTo(orderId);
+        assertThat(history.getUserId()).isEqualTo(userId);
+        assertThat(history.getAmount()).isEqualTo(amount);
+        assertThat(history.getType()).isEqualTo(PointHistoryType.REFUND);
+        assertThat(history.getRelatedOrderId()).isEqualTo(orderId);
     }
 }

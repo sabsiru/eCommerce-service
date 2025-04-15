@@ -13,10 +13,10 @@ class UserTest {
         User user = new User(1L, "tester", 5000, LocalDateTime.now(), LocalDateTime.now());
 
         // When
-        User updatedUser = user.chargePoint(1000);
+        user.chargePoint(1000);
 
         // Then
-        assertEquals(6000, updatedUser.point());
+        assertEquals(6000, user.getPoint());
     }
 
     @Test
@@ -25,10 +25,10 @@ class UserTest {
         User user = new User(1L, "tester", 5000, LocalDateTime.now(), LocalDateTime.now());
 
         // When
-        User updatedUser = user.usePoint(2000);
+        user.usePoint(2000);
 
         // Then
-        assertEquals(3000, updatedUser.point());
+        assertEquals(3000, user.getPoint());
     }
 
     @Test
@@ -37,10 +37,10 @@ class UserTest {
         User user = new User(1L, "tester", 5000, LocalDateTime.now(), LocalDateTime.now());
 
         // When
-        User updatedUser = user.refundPoint(1000);
+        user.refundPoint(1000);
 
         // Then
-        assertEquals(6000, updatedUser.point());
+        assertEquals(6000, user.getPoint());
     }
 
     @Test
@@ -79,7 +79,7 @@ class UserTest {
         User user = new User(1L, "tester", 5000, LocalDateTime.now(), LocalDateTime.now());
 
         // When & Then
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> user.usePoint(6000));
+        IllegalStateException e = assertThrows(IllegalStateException.class, () -> user.usePoint(6000));
         assertEquals("포인트가 부족합니다.", e.getMessage());
     }
 }

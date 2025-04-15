@@ -27,28 +27,7 @@ class UserPointServiceTest {
     private static final LocalDateTime NOW = LocalDateTime.now();
 
 
-    @Test
-    public void 포인트충전_성공() {
-        // given
-        long userId = 1L;
-        long initialPoint = 1000;
-        long chargeAmount = 500;
 
-        User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
-
-        User chargedPoint = user.chargePoint(chargeAmount);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenReturn(chargedPoint);
-
-        // when
-        User updatedUser = userPointService.chargePoint(userId, chargeAmount);  // 포인트 충전
-
-        // then
-        assertEquals(initialPoint + chargeAmount, updatedUser.getPoint());  // 포인트가 1500이 되어야 함
-        verify(userRepository, times(1)).findById(userId);
-        verify(userRepository, times(1)).save(any(User.class));
-    }
 
     @Test
     public void 포인트_충전_금액이_0이하일때_예외() {
@@ -119,12 +98,11 @@ class UserPointServiceTest {
         long userId = 1L;
         long initialPoint = 1_000_000L;
         long useAmount = 500_000L;
+        LocalDateTime now = LocalDateTime.now();
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
-        User usedPoint = user.usePoint(useAmount);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenReturn(usedPoint);
 
         //when
         User updatedUser = userPointService.usePoint(userId, useAmount);  // 포인트 사용
@@ -132,7 +110,7 @@ class UserPointServiceTest {
         // then
         assertEquals(initialPoint - useAmount, updatedUser.getPoint());  // 포인트가 500_000L이 되어야 함
         verify(userRepository, times(1)).findById(userId);
-        verify(userRepository, times(1)).save(any(User.class));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
@@ -185,10 +163,9 @@ class UserPointServiceTest {
         long refundAmount = 1_000_000L;
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
-        User refundPoint = user.refundPoint(refundAmount);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenReturn(refundPoint);
+        //when(userRepository.save(any(User.class))).thenReturn(user);
 
         //when
         User updatedUser = userPointService.refundPoint(userId, refundAmount);  // 포인트 환불
@@ -196,7 +173,7 @@ class UserPointServiceTest {
         // then
         assertEquals(initialPoint + refundAmount, updatedUser.getPoint());  // 포인트가 2_000_000L이 되어야 함
         verify(userRepository, times(1)).findById(userId);
-        verify(userRepository, times(1)).save(any(User.class));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test

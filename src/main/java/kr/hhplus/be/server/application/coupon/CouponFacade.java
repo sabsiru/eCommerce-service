@@ -1,15 +1,14 @@
 package kr.hhplus.be.server.application.coupon;
 
+import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
-import kr.hhplus.be.server.domain.coupon.UserCouponStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-
 @RequiredArgsConstructor
 @Service
+@Transactional
 public class CouponFacade {
 
     private final CouponService couponService;
@@ -26,14 +25,7 @@ public class CouponFacade {
         Coupon coupon = couponService.issueCoupon(couponId);
 
         // 3. 사용자 쿠폰 생성 및 저장
-        UserCoupon userCoupon = new UserCoupon(
-                null,
-                userId,
-                coupon.id(),
-                UserCouponStatus.ISSUED,
-                LocalDateTime.now(),
-                null
-        );
+        UserCoupon userCoupon = UserCoupon.issue(userId, coupon.getId());
         return userCouponService.save(userCoupon);
     }
 

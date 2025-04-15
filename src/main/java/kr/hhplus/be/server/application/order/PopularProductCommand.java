@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PopularProductRequest {
+public class PopularProductCommand {
     private Long productId;
     private int totalQuantity;
 }

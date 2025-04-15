@@ -34,9 +34,9 @@ class PointHistoryServiceTest {
 
         // then
         verify(repository).save(argThat(history ->
-                history.userId() == userId &&
-                        history.amount() == amount &&
-                        history.type() == PointHistoryType.CHARGE
+                history.getUserId() == userId &&
+                        history.getAmount() == amount &&
+                        history.getType() == PointHistoryType.CHARGE
         ));
     }
 
@@ -44,14 +44,13 @@ class PointHistoryServiceTest {
     void 포인트_사용_기록을_저장한다() {
         Long userId = 1L;
         int amount = 5000;
-        int pointAfter = 10000;
 
         service.saveUse(userId, amount);
 
         verify(repository).save(argThat(history ->
-                history.userId() == (userId) &&
-                        history.amount() == amount &&
-                        history.type() == PointHistoryType.USE
+                history.getUserId() == userId &&
+                        history.getAmount() == amount &&
+                        history.getType() == PointHistoryType.USE
         ));
     }
 
@@ -59,16 +58,15 @@ class PointHistoryServiceTest {
     void 포인트_환불_기록을_저장한다() {
         Long userId = 1L;
         int amount = 3000;
-        int pointAfter = 13000;
         Long orderId = 999L;
 
         service.saveRefund(userId, amount, orderId);
 
         verify(repository).save(argThat(history ->
-                history.userId() == (userId) &&
-                        history.amount() == amount &&
-                        history.type() == PointHistoryType.REFUND &&
-                        history.relatedOrderId().equals(orderId)
+                history.getUserId() == userId &&
+                        history.getAmount() == amount &&
+                        history.getType() == PointHistoryType.REFUND &&
+                        orderId.equals(history.getRelatedOrderId())
         ));
     }
 
@@ -80,14 +78,14 @@ class PointHistoryServiceTest {
                 PointHistory.charge(userId, 10000),
                 PointHistory.use(userId, 5000)
         );
-        when(repository.findByUserId(userId)).thenReturn(histories);
+        when(repository.findByUserIdOrderByCreatedAtDesc(userId)).thenReturn(histories);
 
         // when
         List<PointHistory> result = service.getHistories(userId);
 
         // then
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).type()).isEqualTo(PointHistoryType.CHARGE);
-        assertThat(result.get(1).type()).isEqualTo(PointHistoryType.USE);
+        assertThat(result.get(0).getType()).isEqualTo(PointHistoryType.CHARGE);
+        assertThat(result.get(1).getType()).isEqualTo(PointHistoryType.USE);
     }
 }

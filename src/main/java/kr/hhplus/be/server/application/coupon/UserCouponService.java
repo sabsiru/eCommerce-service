@@ -29,11 +29,11 @@ public class UserCouponService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자 쿠폰을 찾을 수 없습니다. userCouponId=" + userCouponId));
     }
 
-    /*
-    * 사용자 id로 쿠폰 조회
-    * */
+    /**
+     * 사용자 ID로 모든 쿠폰 조회
+     */
     public List<UserCoupon> findByUserId(Long userId) {
-      return userCouponRepository.findAllByUserId(userId);
+        return userCouponRepository.findAllByUserId(userId);
     }
 
     /**
@@ -41,21 +41,21 @@ public class UserCouponService {
      */
     public UserCoupon useCoupon(Long userCouponId) {
         UserCoupon userCoupon = getById(userCouponId);
-        UserCoupon updated = userCoupon.use();
-        return userCouponRepository.save(updated);
+        userCoupon.use();  // 내부 상태만 변경
+        return userCoupon;
     }
 
     /**
-     * 사용자 쿠폰 환불 처리
+     * 쿠폰 환불 처리
      */
     public UserCoupon refundCoupon(Long userCouponId) {
         UserCoupon userCoupon = getById(userCouponId);
-        UserCoupon updated = userCoupon.refund();
-        return userCouponRepository.save(updated);
+        userCoupon.refund();  // 내부 상태만 변경
+        return userCoupon;
     }
 
     /**
-     * 사용자 ID와 쿠폰 ID로 사용자 쿠폰 중복 검증
+     * 사용자 ID와 쿠폰 ID로 중복 발급 검증
      */
     public void validateNotDuplicated(Long userId, Long couponId) {
         Optional<UserCoupon> existing = userCouponRepository.findByUserIdAndCouponId(userId, couponId);

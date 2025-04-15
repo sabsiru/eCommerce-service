@@ -46,7 +46,7 @@ class CouponFacadeTest {
 
         // userCouponService.validateNotDuplicated()는 예외 없이 통과하도록 설정 (void 메서드이므로 doNothing()은 생략 가능)
         // userCouponService.save() Stub: 저장된 UserCoupon을 반환 (id 부여된 상태)
-        UserCoupon savedUserCoupon = new UserCoupon(1L, userId, coupon.id(), UserCouponStatus.ISSUED, now, null);
+        UserCoupon savedUserCoupon = new UserCoupon(1L, userId, coupon.getId(), UserCouponStatus.ISSUED, now, null);
         when(userCouponService.save(any(UserCoupon.class))).thenReturn(savedUserCoupon);
 
         // when
@@ -54,10 +54,10 @@ class CouponFacadeTest {
 
         // then
         assertNotNull(result);
-        assertEquals(1L, result.id());
-        assertEquals(userId, result.userId());
-        assertEquals(couponId, result.couponId());
-        assertEquals(UserCouponStatus.ISSUED, result.status());
+        assertEquals(1L, result.getId());
+        assertEquals(userId, result.getUserId());
+        assertEquals(couponId, result.getCouponId());
+        assertEquals(UserCouponStatus.ISSUED, result.getStatus());
         // validateNotDuplicated가 호출되어 중복체크가 수행됨을 검증 (예외 없으므로 추가 검증은 verify로)
         verify(userCouponService, times(1)).validateNotDuplicated(userId, couponId);
         verify(couponService, times(1)).issueCoupon(couponId);

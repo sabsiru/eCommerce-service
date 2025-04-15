@@ -38,7 +38,7 @@ class UserPointFacadeTest {
         long expectedPoint = initialPoint + chargeAmount;
 
         User user = new User(userId, "tester", expectedPoint, LocalDateTime.now(), LocalDateTime.now());
-        PointHistory pointHistory = new PointHistory(null, userId, chargeAmount, PointHistoryType.CHARGE, user.createdAt(), null);
+        PointHistory pointHistory = new PointHistory(null, userId, chargeAmount, PointHistoryType.CHARGE, user.getCreatedAt(), null);
 
         when(userPointService.chargePoint(userId,chargeAmount)).thenReturn(user);
         when(pointHistoryService.saveCharge(userId,chargeAmount)).thenReturn(pointHistory);
@@ -78,7 +78,7 @@ class UserPointFacadeTest {
 
         // then
         PointHistory expectedHistory = PointHistory.charge(userId, chargeAmount);
-        assertEquals(PointHistoryType.CHARGE, expectedHistory.type());
+        assertEquals(PointHistoryType.CHARGE, expectedHistory.getType());
 
         verify(userPointService, times(1)).chargePoint(userId, chargeAmount);
         verify(pointHistoryService, times(1)).saveCharge(userId, chargeAmount);
@@ -156,7 +156,7 @@ class UserPointFacadeTest {
         long expectedPoint = initialPoint - useAmount;
 
         User user = new User(userId, "tester", expectedPoint, LocalDateTime.now(), LocalDateTime.now());
-        PointHistory pointHistory = new PointHistory(null, userId, useAmount, PointHistoryType.USE, user.createdAt(), null);
+        PointHistory pointHistory = new PointHistory(null, userId, useAmount, PointHistoryType.USE, user.getCreatedAt(), null);
 
         when(userPointService.usePoint(userId,useAmount)).thenReturn(user);
         when(pointHistoryService.saveUse(userId,useAmount)).thenReturn(pointHistory);
@@ -197,7 +197,7 @@ class UserPointFacadeTest {
         // then
         // 예상되는 PointHistory 객체 생성
         PointHistory expectedHistory = PointHistory.use(userId, useAmount);
-        assertEquals(PointHistoryType.USE, expectedHistory.type());
+        assertEquals(PointHistoryType.USE, expectedHistory.getType());
 
         verify(userPointService, times(1)).usePoint(userId, useAmount);
         verify(pointHistoryService, times(1)).saveUse(userId, useAmount);
@@ -213,7 +213,7 @@ class UserPointFacadeTest {
         long orderId=1L;
 
         User user = new User(userId, "tester", expectedPoint, LocalDateTime.now(), LocalDateTime.now());
-        PointHistory pointHistory = new PointHistory(null, userId, useAmount, PointHistoryType.REFUND, user.createdAt(), orderId);
+        PointHistory pointHistory = new PointHistory(null, userId, useAmount, PointHistoryType.REFUND, user.getCreatedAt(), orderId);
 
         when(userPointService.refundPoint(userId,useAmount)).thenReturn(user);
         when(pointHistoryService.saveRefund(userId,useAmount,orderId)).thenReturn(pointHistory);
@@ -256,8 +256,8 @@ class UserPointFacadeTest {
         // then
         // 예상되는 PointHistory 객체 생성
         PointHistory expectedHistory = PointHistory.refund(userId, refundAmount, orderId);
-        assertEquals(PointHistoryType.REFUND, expectedHistory.type());
-        assertEquals(orderId, expectedHistory.relatedOrderId());
+        assertEquals(PointHistoryType.REFUND, expectedHistory.getType());
+        assertEquals(orderId, expectedHistory.getRelatedOrderId());
 
         verify(userPointService, times(1)).refundPoint(userId, refundAmount);
         verify(pointHistoryService, times(1)).saveRefund(userId, refundAmount, orderId);

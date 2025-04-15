@@ -5,9 +5,7 @@ import kr.hhplus.be.server.domain.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -29,23 +27,29 @@ public class ProductService {
     // 재고 차감
     public Product decreaseStock(long productId, int decreaseQuantity) {
         Product product = getProductOrThrow(productId);
-        Product updatedProduct = product.decreaseStock(decreaseQuantity);
+        product.decreaseStock(decreaseQuantity);  // 내부 상태 변경
 
-        return productRepository.save(updatedProduct);
+        return productRepository.save(product);   // 변경 감지 or 명시적 저장
     }
 
     // 재고 증가
     public Product increaseStock(long productId, int increaseQuantity) {
         Product product = getProductOrThrow(productId);
-        Product updatedProduct = product.increaseStock(increaseQuantity);
+        product.increaseStock(increaseQuantity);
 
-        return productRepository.save(updatedProduct);
+        return productRepository.save(product);
     }
 
+    // 현재 재고 조회
     public int getStock(Long productId) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("제품을 찾을 수 없습니다. productId=" + productId));
-        return product.stock();
+        Product product = getProductOrThrow(productId);
+        return product.getStock();  // getter 사용
     }
 
+    public void checkStock(long productId, int requiredQuantity) {
+        Product product = getProductOrThrow(productId);
+        if (product.getStock() < requiredQuantity) {
+            throw new IllegalStateException("상품 재고가 부족합니다.");
+        }
+    }
 }

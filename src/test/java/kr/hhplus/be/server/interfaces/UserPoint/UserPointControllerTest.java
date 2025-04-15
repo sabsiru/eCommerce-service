@@ -44,7 +44,7 @@ public class UserPointControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(userId))
                 .andExpect(jsonPath("$.name").value("테스터"))
-                .andExpect(jsonPath("$.point").value(updatedUser.point()));
+                .andExpect(jsonPath("$.point").value(updatedUser.getPoint()));
     }
     @Test
     public void 컨트롤러_포인트충전_최대한도_초과() throws Exception{
