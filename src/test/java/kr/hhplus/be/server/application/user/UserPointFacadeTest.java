@@ -33,9 +33,9 @@ class UserPointFacadeTest {
     public void 포인트_정상_충전시_충전금액_정상() throws Exception{
         //given
         long userId = 1L;
-        long initialPoint = 1000;
+        int initialPoint = 1000;
         int chargeAmount = 5000;
-        long expectedPoint = initialPoint + chargeAmount;
+        int expectedPoint = initialPoint + chargeAmount;
 
         User user = new User(userId, "tester", expectedPoint, LocalDateTime.now(), LocalDateTime.now());
         PointHistory pointHistory = new PointHistory(null, userId, chargeAmount, PointHistoryType.CHARGE, user.getCreatedAt(), null);
@@ -56,9 +56,9 @@ class UserPointFacadeTest {
     void 포인트_충전시_충전내역_타입_확인() {
         // given
         long userId = 1L;
-        long initialPoint = 1000L;
+        int initialPoint = 1000;
         int chargeAmount = 5000;
-        long expectedPoint = initialPoint + chargeAmount;
+        int expectedPoint = initialPoint + chargeAmount;
 
         // userPointService는 충전 후 업데이트된 User를 반환하도록 설정
         User updatedUser = new User(userId, "tester", expectedPoint, LocalDateTime.now(), LocalDateTime.now());
@@ -151,9 +151,9 @@ class UserPointFacadeTest {
     public void 포인트_정상_사용시_사용금액_정상() throws Exception{
         //given
         long userId = 1L;
-        long initialPoint = 6000;
+        int initialPoint = 6000;
         int useAmount = 5000;
-        long expectedPoint = initialPoint - useAmount;
+        int expectedPoint = initialPoint - useAmount;
 
         User user = new User(userId, "tester", expectedPoint, LocalDateTime.now(), LocalDateTime.now());
         PointHistory pointHistory = new PointHistory(null, userId, useAmount, PointHistoryType.USE, user.getCreatedAt(), null);
@@ -175,8 +175,8 @@ class UserPointFacadeTest {
         // given
         long userId = 1L;
         int useAmount = 200; // 포인트 사용 금액
-        long initialPoint = 1000L;
-        long expectedPoint = initialPoint - useAmount;
+        int initialPoint = 1000;
+        int expectedPoint = initialPoint - useAmount;
 
         // userPointService가 사용 후 업데이트된 User를 반환하도록 설정
         User updatedUser = new User(userId, "tester", expectedPoint, LocalDateTime.now(), LocalDateTime.now());
@@ -207,9 +207,9 @@ class UserPointFacadeTest {
     public void 포인트_정상_환불시_환불금액_정상() throws Exception{
         //given
         long userId = 1L;
-        long initialPoint = 6000;
+        int initialPoint = 6000;
         int useAmount = 5000;
-        long expectedPoint = initialPoint + useAmount;
+        int expectedPoint = initialPoint + useAmount;
         long orderId=1L;
 
         User user = new User(userId, "tester", expectedPoint, LocalDateTime.now(), LocalDateTime.now());
@@ -233,8 +233,8 @@ class UserPointFacadeTest {
         long userId = 1L;
         int refundAmount = 300; // 환불 금액
         Long orderId = 10L;     // 관련 주문 ID
-        long initialPoint = 1000L;
-        long expectedPoint = initialPoint + refundAmount;
+        int initialPoint = 1000;
+        int expectedPoint = initialPoint + refundAmount;
 
         // userPointService가 환불 후 업데이트된 User를 반환하도록 설정
         User updatedUser = new User(userId, "tester", expectedPoint, LocalDateTime.now(), LocalDateTime.now());

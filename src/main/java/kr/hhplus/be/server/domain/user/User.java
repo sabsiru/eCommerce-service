@@ -25,7 +25,7 @@ public class User {
 
     private String name;
 
-    private long point;
+    private int point;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -35,7 +35,7 @@ public class User {
 
     // 테스트 용도로 id도 주입하고 싶으면 아래처럼 오버로드
     @Builder
-    public User(Long id, String name, long point, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public User(Long id, String name, int point, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
         this.point = point;
