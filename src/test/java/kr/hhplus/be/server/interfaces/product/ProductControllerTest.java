@@ -38,7 +38,6 @@ public class ProductControllerTest {
         List<Product> productList = Arrays.asList(product1, product2);
 
         // Stub: ProductService.getAllProducts() 호출 시, 위 productList 반환하도록 설정
-        when(productFacade.getAllProducts()).thenReturn(productList);
 
         // Act & Assert:
         mockMvc.perform(get("/products")

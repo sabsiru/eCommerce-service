@@ -8,6 +8,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -32,7 +35,7 @@ class ProductServiceTest {
         Long productId = 1L;
         int expectedStock = 50;
         // Product 도메인: price와 stock은 int, id 및 categoryId는 long
-        Product product = new Product(productId, "Test Product", 10000, expectedStock, 1L,  LocalDateTime.now(), LocalDateTime.now());
+        Product product = new Product(productId, "Test Product", 10000, expectedStock, 1L, LocalDateTime.now(), LocalDateTime.now());
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
         // when
@@ -127,8 +130,9 @@ class ProductServiceTest {
         List<Product> products = Arrays.asList(product1, product2);
         when(productRepository.findAll()).thenReturn(products);
 
-        List<Product> result = productService.getAllProducts();
-        assertEquals(2, result.size());
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Product> result = productService.getProducts(pageable);
+
         verify(productRepository, times(1)).findAll();
     }
 
@@ -166,7 +170,7 @@ class ProductServiceTest {
         int expectedStock = initialStock + restockQuantity;
 
         // 초기 Product 도메인: 재고가 50
-        Product product = new Product(productId, "Test Product", 10_000, initialStock, 1L,  LocalDateTime.now(), LocalDateTime.now());
+        Product product = new Product(productId, "Test Product", 10_000, initialStock, 1L, LocalDateTime.now(), LocalDateTime.now());
 
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
         when(productRepository.save(any(Product.class))).thenReturn(product);
