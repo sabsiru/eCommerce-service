@@ -46,6 +46,16 @@ dependencies {
 	annotationProcessor ("org.projectlombok:lombok:1.18.30")
 	testCompileOnly ("org.projectlombok:lombok:1.18.30")
 	testAnnotationProcessor ("org.projectlombok:lombok:1.18.30")
+
+	// QueryDSL (JPA + APT)
+	implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+	annotationProcessor("com.querydsl:querydsl-apt:5.0.0:jakarta")
+	annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+	annotationProcessor("jakarta.annotation:jakarta.annotation-api")
+
+	// instancio
+	implementation ("org.instancio:instancio-core:2.0.0")
+
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
@@ -53,6 +63,10 @@ dependencies {
 	testImplementation("org.testcontainers:mysql")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
+
+//sourceSets {
+//	getByName("main").java.srcDir("build/generated/sources/annotationProcessor/java/main")
+//}
 
 tasks.withType<Test> {
 	useJUnitPlatform()
