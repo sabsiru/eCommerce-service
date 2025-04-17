@@ -2,6 +2,7 @@ package kr.hhplus.be.server.application.product;
 
 import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.product.Product;
+import kr.hhplus.be.server.domain.product.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

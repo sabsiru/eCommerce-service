@@ -3,6 +3,7 @@ package kr.hhplus.be.server.application.product;
 import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductRepository;
+import kr.hhplus.be.server.domain.product.ProductService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

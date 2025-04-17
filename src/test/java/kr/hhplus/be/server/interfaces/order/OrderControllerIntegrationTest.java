@@ -4,15 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.application.order.CreateOrderCommand;
 import kr.hhplus.be.server.application.order.OrderItemCommand;
-import kr.hhplus.be.server.application.order.OrderService;
+import kr.hhplus.be.server.domain.order.OrderItemRepository;
+import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderRepository;
-import kr.hhplus.be.server.domain.order.OrderStatus;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -50,6 +49,9 @@ class OrderControllerIntegrationTest {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
     @Test
     void 주문_생성_성공() throws Exception {
         User user = userRepository.save(User.create("주문자", 100000));
@@ -79,6 +81,7 @@ class OrderControllerIntegrationTest {
                 new OrderItemCommand(p2.getId(), 2, p2.getPrice())
         ));
         Order order = orderRepository.save(Order.create(command.getUserId(), command.getOrderItemCommands()));
+        orderItemRepository.saveAll(order.getItems());
 
         mockMvc.perform(get("/orders/{userId}", user.getId()))
                 .andExpect(status().isOk())
@@ -110,7 +113,7 @@ class OrderControllerIntegrationTest {
 
         mockMvc.perform(get("/orders/{userId}", 잘못된유저아이디))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("유저를 찾을수 없습니다.")));
+                .andExpect(content().string(containsString("해당 유저가 없거나 주문 목록이 없습니다.")));
     }
 
     @Test

@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.application.order;
 
 import kr.hhplus.be.server.domain.order.Order;
-import kr.hhplus.be.server.domain.order.OrderItem;
+import kr.hhplus.be.server.domain.order.OrderItemRepository;
 import kr.hhplus.be.server.domain.order.OrderRepository;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductRepository;
@@ -33,6 +33,9 @@ class OrderFacadeIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
 
     @Test
     void 주문_생성_성공() {

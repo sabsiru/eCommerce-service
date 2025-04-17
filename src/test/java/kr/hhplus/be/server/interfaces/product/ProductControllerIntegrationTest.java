@@ -5,30 +5,26 @@ import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.application.order.CreateOrderCommand;
 import kr.hhplus.be.server.application.order.OrderItemCommand;
 import kr.hhplus.be.server.domain.order.Order;
-import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderItemRepository;
 import kr.hhplus.be.server.domain.order.OrderRepository;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductRepository;
-import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.Commit;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -43,12 +39,6 @@ class ProductControllerIntegrationTest {
 
     @Autowired
     private OrderRepository orderRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private OrderItemRepository orderItemRepository;
@@ -71,6 +61,7 @@ class ProductControllerIntegrationTest {
         Order order = Order.create(command.getUserId(), command.getOrderItemCommands());
 
         orderRepository.saveAndFlush(order);
+        orderItemRepository.saveAll(order.getItems());
 
         // when & then
         mockMvc.perform(get("/products/popular")

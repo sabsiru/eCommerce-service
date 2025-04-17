@@ -3,6 +3,7 @@ package kr.hhplus.be.server.application.product;
 import kr.hhplus.be.server.application.order.CreateOrderCommand;
 import kr.hhplus.be.server.application.order.OrderItemCommand;
 import kr.hhplus.be.server.domain.order.Order;
+import kr.hhplus.be.server.domain.order.OrderItemRepository;
 import kr.hhplus.be.server.domain.order.OrderRepository;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductRepository;
@@ -28,6 +29,9 @@ class ProductFacadeIntegrationTest {
 
     @Autowired
     ProductFacade productFacade;
+
+    @Autowired
+    OrderItemRepository orderItemRepository;
 
     @Test
     void 인기_상품_조회_성공() {
@@ -58,6 +62,7 @@ class ProductFacadeIntegrationTest {
             CreateOrderCommand command = new CreateOrderCommand(userId, List.of(itemCommand));
             Order order = Order.create(userId,command.getOrderItemCommands());
             orderRepository.save(order);
+            orderItemRepository.saveAll(order.getItems());
         }
 
         // when

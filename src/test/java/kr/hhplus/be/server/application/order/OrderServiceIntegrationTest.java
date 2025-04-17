@@ -1,17 +1,13 @@
 package kr.hhplus.be.server.application.order;
 
 import jakarta.transaction.Transactional;
-import kr.hhplus.be.server.domain.order.Order;
-import kr.hhplus.be.server.domain.order.OrderItem;
-import kr.hhplus.be.server.domain.order.OrderRepository;
-import kr.hhplus.be.server.domain.order.OrderStatus;
+import kr.hhplus.be.server.domain.order.*;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -85,7 +81,7 @@ class OrderServiceIntegrationTest {
     void 주문_취소_성공() {
         Order order = orderRepository.save(Order.create(1L, List.of(new OrderItemCommand(101L, 1, 10000))));
 
-        Order result = orderService.cancelOrder(order.getId());
+        Order result = orderService.cancel(order.getId());
 
         assertThat(result.getStatus()).isEqualTo(OrderStatus.CANCEL);
     }

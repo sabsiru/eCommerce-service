@@ -4,7 +4,9 @@ import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.application.order.OrderItemCommand;
 import kr.hhplus.be.server.domain.coupon.*;
 import kr.hhplus.be.server.domain.order.Order;
+import kr.hhplus.be.server.domain.order.OrderItemRepository;
 import kr.hhplus.be.server.domain.order.OrderRepository;
+import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
 import kr.hhplus.be.server.domain.payment.PaymentStatus;
@@ -40,6 +42,11 @@ class PaymentFacadeIntegrationTest {
     UserCouponRepository userCouponRepository;
     @Autowired
     PaymentRepository paymentRepository;
+    @Autowired
+    OrderItemRepository orderItemRepository;
+    @Autowired
+    OrderService orderService;
+
 
     @Test
     void 쿠폰없이_결제_성공() {
@@ -51,11 +58,12 @@ class PaymentFacadeIntegrationTest {
                 new OrderItemCommand(product.getId(), 1, product.getPrice())
         );
         Order order = Order.create(user.getId(), commands);
-        orderRepository.save(order);
+        orderService.save(order);
 
         // when
         Payment payment = paymentFacade.processPayment(order.getId(), order.getTotalAmount()); // 쿠폰 없음
 
+        paymentRepository.flush(); // ← 또는 em.flush()
         // then
         assertThat(payment).isNotNull();
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.COMPLETED);
@@ -82,7 +90,7 @@ class PaymentFacadeIntegrationTest {
 
         List<OrderItemCommand> items = List.of(new OrderItemCommand(product.getId(), 1, 20000));
         Order order = Order.create(user.getId(), items);
-        orderRepository.save(order);
+        orderService.save(order);
 
         // when
         Payment payment = paymentFacade.processPayment(order.getId(), order.getTotalAmount());
@@ -112,7 +120,7 @@ class PaymentFacadeIntegrationTest {
         Order order = Order.create(user.getId(), List.of(
                 new OrderItemCommand(product.getId(), 1, product.getPrice())
         ));
-        orderRepository.save(order);
+        orderService.save(order);
 
         // 결제 수행 (쿠폰 없음)
         Payment payment = paymentFacade.processPayment(order.getId(), order.getTotalAmount());
@@ -142,7 +150,7 @@ class PaymentFacadeIntegrationTest {
         Order order = Order.create(user.getId(), List.of(
                 new OrderItemCommand(product.getId(), 1, 20000)
         ));
-        orderRepository.save(order);
+        orderService.save(order);
 
         Payment payment = paymentFacade.processPayment(order.getId(), order.getTotalAmount());
 
@@ -171,8 +179,7 @@ class PaymentFacadeIntegrationTest {
         Order order = Order.create(user.getId(), List.of(
                 new OrderItemCommand(product.getId(), 2, 10000) // 수량 2 → 초과
         ));
-        orderRepository.save(order);
-
+        orderService.save(order);
         // when & then
         IllegalStateException e = assertThrows(IllegalStateException.class,
                 () -> paymentFacade.processPayment(order.getId(), 20000));
@@ -189,8 +196,7 @@ class PaymentFacadeIntegrationTest {
         Order order = Order.create(user.getId(), List.of(
                 new OrderItemCommand(product.getId(), 1, 10000)
         ));
-        orderRepository.save(order);
-
+        orderService.save(order);
         // when & then
         IllegalStateException e = assertThrows(IllegalStateException.class,
                 () -> paymentFacade.processPayment(order.getId(), 10000));
@@ -207,8 +213,7 @@ class PaymentFacadeIntegrationTest {
         Order order = Order.create(user.getId(), List.of(
                 new OrderItemCommand(product.getId(), 1, product.getPrice())
         ));
-        orderRepository.save(order);
-
+        orderService.save(order);
         // 직접 결제 저장 (PENDING 상태 유지)
         Payment pendingPayment = paymentRepository.save(Payment.withoutCoupon(order.getId(), 10000));
 
@@ -228,8 +233,7 @@ class PaymentFacadeIntegrationTest {
         Order order = Order.create(user.getId(), List.of(
                 new OrderItemCommand(product.getId(), 1, product.getPrice())
         ));
-        orderRepository.save(order);
-
+        orderService.save(order);
         // 결제 완료 후 상태 수동 변경
         Payment payment = paymentRepository.save(Payment.withoutCoupon(order.getId(), 10000));
         payment.complete();

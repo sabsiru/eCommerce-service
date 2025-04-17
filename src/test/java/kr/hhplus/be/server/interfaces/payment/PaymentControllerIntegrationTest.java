@@ -2,19 +2,18 @@ package kr.hhplus.be.server.interfaces.payment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import kr.hhplus.be.server.application.order.CreateOrderCommand;
 import kr.hhplus.be.server.application.order.OrderItemCommand;
 import kr.hhplus.be.server.application.payment.PaymentFacade;
-import kr.hhplus.be.server.application.payment.PaymentService;
 import kr.hhplus.be.server.domain.coupon.*;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderRepository;
+import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.user.User;
-import kr.hhplus.be.server.application.order.CreateOrderCommand;
-import kr.hhplus.be.server.application.order.OrderService;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +29,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -63,7 +61,7 @@ class PaymentControllerIntegrationTest {
     void 결제_성공_쿠폰없이() throws Exception {
         User user = userRepository.save(User.create("결제유저", 50000));
         Product product = productRepository.save(new Product("상품", 25000, 10, 1L));
-        Order order = orderService.createOrder(new CreateOrderCommand(user.getId(),
+        Order order = orderService.create(new CreateOrderCommand(user.getId(),
                 List.of(new OrderItemCommand(product.getId(), 2, 25000))));
         orderRepository.save(order);
 
@@ -85,9 +83,9 @@ class PaymentControllerIntegrationTest {
         Coupon coupon = couponRepository.save(Coupon.create("20%할인", 20, 5000, LocalDateTime.now().plusDays(3), 100));
         userCouponRepository.save(UserCoupon.issue(user.getId(), coupon.getId()));
 
-        Order order = orderService.createOrder(new CreateOrderCommand(user.getId(),
+        Order order = orderService.create(new CreateOrderCommand(user.getId(),
                 List.of(new OrderItemCommand(product.getId(), 1, 20000))));
-        orderRepository.save(order);
+        orderService.save(order);
 
         // 실제 할인 금액 = 20000 * 0.2 = 4000원
         int expectedPayAmount = 16000;
@@ -111,12 +109,9 @@ class PaymentControllerIntegrationTest {
         // given
         User user = userRepository.save(User.create("재고부족유저", 50000));
         Product product = productRepository.save(new Product("상품", 10000, 1, 1L)); // 재고 1
-
-        // 주문 수량 2 → 재고 초과
-        CreateOrderCommand command = new CreateOrderCommand(user.getId(),
-                List.of(new OrderItemCommand(product.getId(), 2, product.getPrice())));
-        Order order = orderService.createOrder(command);
-        orderRepository.save(order);
+        Order order = orderService.create(new CreateOrderCommand(user.getId(),
+                List.of(new OrderItemCommand(product.getId(), 2, product.getPrice()))));
+        orderService.save(order);
 
         PaymentRequest request = new PaymentRequest(20000); // 2 * 10000
 
@@ -132,9 +127,9 @@ class PaymentControllerIntegrationTest {
     void 결제_실패_포인트부족() throws Exception {
         User user = userRepository.save(User.create("포인트부족", 10000));
         Product product = productRepository.save(new Product("비싼상품", 30000, 10, 1L));
-        Order order = orderService.createOrder(new CreateOrderCommand(user.getId(),
+        Order order = orderService.create(new CreateOrderCommand(user.getId(),
                 List.of(new OrderItemCommand(product.getId(), 2, 30000))));
-        orderRepository.save(order);
+        orderService.save(order);
 
         PaymentRequest request = new PaymentRequest(order.getTotalAmount());
 
@@ -149,9 +144,9 @@ class PaymentControllerIntegrationTest {
     void 환불_성공_쿠폰없이() throws Exception {
         User user = userRepository.save(User.create("환불유저", 50000));
         Product product = productRepository.save(new Product("상품", 20000, 10, 1L));
-        Order order = orderService.createOrder(new CreateOrderCommand(user.getId(),
+        Order order = orderService.create(new CreateOrderCommand(user.getId(),
                 List.of(new OrderItemCommand(product.getId(), 2, 20000))));
-        orderRepository.save(order);
+        orderService.save(order);
 
         Payment payment = paymentFacade.processPayment(order.getId(), order.getTotalAmount());
 
@@ -170,9 +165,9 @@ class PaymentControllerIntegrationTest {
         Coupon coupon = couponRepository.save(Coupon.create("20%할인", 20, 5000, LocalDateTime.now().plusDays(3), 100));
         UserCoupon userCoupon = userCouponRepository.save(UserCoupon.issue(user.getId(), coupon.getId()));
 
-        Order order = orderService.createOrder(new CreateOrderCommand(user.getId(),
+        Order order = orderService.create(new CreateOrderCommand(user.getId(),
                 List.of(new OrderItemCommand(product.getId(), 1, 20000))));
-        orderRepository.save(order);
+        orderService.save(order);
 
         // 결제
         int expectedPayAmount = 16000;
@@ -201,9 +196,9 @@ class PaymentControllerIntegrationTest {
     void 환불_실패_결제되지않은_주문() throws Exception {
         User user = userRepository.save(User.create("미결제유저", 50000));
         Product product = productRepository.save(new Product("상품", 20000, 10, 1L));
-        Order order = orderService.createOrder(new CreateOrderCommand(user.getId(),
+        Order order = orderService.create(new CreateOrderCommand(user.getId(),
                 List.of(new OrderItemCommand(product.getId(), 1, 20000))));
-        orderRepository.save(order);
+        orderService.save(order);
         Long nonExistentPaymentId = 9999L;
         mockMvc.perform(patch("/payments/{paymentId}/refund", nonExistentPaymentId))
                 .andExpect(status().isBadRequest())
