@@ -1,7 +1,5 @@
-package kr.hhplus.be.server.application.point;
+package kr.hhplus.be.server.domain.point;
 
-import kr.hhplus.be.server.domain.point.PointHistory;
-import kr.hhplus.be.server.domain.point.PointHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
