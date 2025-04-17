@@ -1,10 +1,8 @@
 package kr.hhplus.be.server.application.order;
 
-import kr.hhplus.be.server.application.product.ProductService;
-import kr.hhplus.be.server.application.user.UserPointService;
-import kr.hhplus.be.server.domain.order.Order;
-import kr.hhplus.be.server.domain.order.OrderItem;
-import kr.hhplus.be.server.domain.order.OrderStatus;
+import kr.hhplus.be.server.domain.product.ProductService;
+import kr.hhplus.be.server.domain.user.UserPointService;
+import kr.hhplus.be.server.domain.order.*;
 import kr.hhplus.be.server.interfaces.order.OrderResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,9 +28,6 @@ class OrderFacadeTest {
     private ProductService productService;
 
     @Mock
-    private OrderItemService orderItemService;
-
-    @Mock
     private UserPointService userPointService;
 
     @Test
@@ -47,10 +42,8 @@ class OrderFacadeTest {
         doNothing().when(productService).checkStock(101L, 2);
         doNothing().when(productService).checkStock(102L, 1);
 
-        Order mockOrder = mock(Order.class);
-        when(orderService.save(any(Order.class))).thenReturn(mockOrder);
-        when(mockOrder.getItems()).thenReturn(List.of(mock(OrderItem.class), mock(OrderItem.class)));
-        when(mockOrder.getTotalAmount()).thenReturn(50000);
+        Order order = Order.create(userId, requestList);
+        when(orderService.save(any(Order.class))).thenReturn(order);
 
         // when
         OrderResponse response = orderFacade.processOrder(command);
@@ -90,12 +83,12 @@ class OrderFacadeTest {
         Order cancelledOrder = mock(Order.class);
 
         when(cancelledOrder.getStatus()).thenReturn(OrderStatus.CANCEL);
-        when(orderService.cancelOrder(orderId)).thenReturn(cancelledOrder);
+        when(orderService.cancel(orderId)).thenReturn(cancelledOrder);
 
         Order result = orderFacade.cancelOrder(orderId);
 
         assertEquals(OrderStatus.CANCEL, result.getStatus());
-        verify(orderService).cancelOrder(orderId);
+        verify(orderService).cancel(orderId);
     }
 
     @Test

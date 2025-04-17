@@ -1,9 +1,6 @@
 package kr.hhplus.be.server.application.order;
 
-import kr.hhplus.be.server.domain.order.Order;
-import kr.hhplus.be.server.domain.order.OrderItem;
-import kr.hhplus.be.server.domain.order.OrderRepository;
-import kr.hhplus.be.server.domain.order.OrderStatus;
+import kr.hhplus.be.server.domain.order.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -94,7 +91,7 @@ class OrderServiceTest {
         Order order = Order.create(1L, List.of(new OrderItemCommand(10L, 1, 10000)));
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
-        Order result = orderService.cancelOrder(orderId);
+        Order result = orderService.cancel(orderId);
 
         assertEquals(OrderStatus.CANCEL, result.getStatus());
         verify(orderRepository).findById(orderId);

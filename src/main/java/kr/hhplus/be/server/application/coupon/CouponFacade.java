@@ -3,6 +3,7 @@ package kr.hhplus.be.server.application.coupon;
 import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
+import kr.hhplus.be.server.domain.coupon.UserCouponService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

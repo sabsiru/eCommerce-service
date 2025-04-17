@@ -2,15 +2,16 @@ package kr.hhplus.be.server.application.payment;
 
 import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.application.coupon.CouponService;
-import kr.hhplus.be.server.application.coupon.UserCouponService;
-import kr.hhplus.be.server.application.order.OrderService;
-import kr.hhplus.be.server.application.product.ProductService;
+import kr.hhplus.be.server.domain.coupon.UserCouponService;
+import kr.hhplus.be.server.domain.order.OrderService;
+import kr.hhplus.be.server.domain.product.ProductService;
 import kr.hhplus.be.server.application.user.UserPointFacade;
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.payment.Payment;
+import kr.hhplus.be.server.domain.payment.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +32,8 @@ public class PaymentFacade {
     public Payment processPayment(Long orderId, int paymentAmount) {
         Order order = orderService.getOrderOrThrow(orderId);
 
-        for (OrderItem item : order.getItems()) {
+        List<OrderItem> items = orderService.getOrderItems(orderId);
+        for (OrderItem item : items) {
             productService.decreaseStock(item.getProductId(), item.getQuantity());
         }
 
@@ -47,7 +49,7 @@ public class PaymentFacade {
         int finalPaymentAmount = paymentAmount - calculateDiscount;
         userPointFacade.usePoint(order.getUserId(), finalPaymentAmount);
 
-        orderService.payOrder(orderId);
+        orderService.pay(orderId);
 
         Payment payment;
         if (!byUserId.isEmpty()) {
@@ -72,7 +74,8 @@ public class PaymentFacade {
             userCouponService.refundCoupon(refundPayment.getCouponId());
         }
 
-        for (OrderItem item : order.getItems()) {
+        List<OrderItem> items = orderService.getOrderItems(order.getId());
+        for (OrderItem item : items) {
             productService.increaseStock(item.getProductId(), item.getQuantity());
         }
 

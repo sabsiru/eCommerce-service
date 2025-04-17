@@ -1,9 +1,9 @@
 package kr.hhplus.be.server.application.coupon;
 
+import kr.hhplus.be.server.domain.coupon.UserCouponService;
 import kr.hhplus.be.server.domain.coupon.UserCouponStatus;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
 import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

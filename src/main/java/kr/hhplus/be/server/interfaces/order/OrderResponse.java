@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.interfaces.order;
 
 import kr.hhplus.be.server.domain.order.Order;
+import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,8 +19,8 @@ public class OrderResponse {
     private int totalAmount;
     private OrderStatus status;
 
-    public static OrderResponse from(Order order) {
-        List<OrderItemResponse> itemResponses = order.getItems().stream()
+    public static OrderResponse from(Order order, List<OrderItem> items) {
+        List<OrderItemResponse> itemResponses = items.stream()
                 .map(OrderItemResponse::from)
                 .toList();
 

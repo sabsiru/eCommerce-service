@@ -1,8 +1,9 @@
 package kr.hhplus.be.server.application.user;
 
 import jakarta.transaction.Transactional;
-import kr.hhplus.be.server.application.point.PointHistoryService;
+import kr.hhplus.be.server.domain.point.PointHistoryService;
 import kr.hhplus.be.server.domain.user.User;
+import kr.hhplus.be.server.domain.user.UserPointService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

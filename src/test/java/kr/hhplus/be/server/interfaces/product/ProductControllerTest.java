@@ -1,7 +1,6 @@
 package kr.hhplus.be.server.interfaces.product;
 
 import kr.hhplus.be.server.application.product.ProductFacade;
-import kr.hhplus.be.server.application.product.ProductService;
 import kr.hhplus.be.server.domain.product.Product;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

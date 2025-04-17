@@ -1,10 +1,10 @@
 package kr.hhplus.be.server.application.payment;
 
 import kr.hhplus.be.server.application.coupon.CouponService;
-import kr.hhplus.be.server.application.coupon.UserCouponService;
+import kr.hhplus.be.server.domain.coupon.UserCouponService;
 import kr.hhplus.be.server.application.order.OrderItemCommand;
-import kr.hhplus.be.server.application.order.OrderService;
-import kr.hhplus.be.server.application.product.ProductService;
+import kr.hhplus.be.server.domain.order.OrderService;
+import kr.hhplus.be.server.domain.product.ProductService;
 import kr.hhplus.be.server.application.user.UserPointFacade;
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.CouponStatus;
@@ -13,6 +13,7 @@ import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderStatus;
 import kr.hhplus.be.server.domain.payment.Payment;
+import kr.hhplus.be.server.domain.payment.PaymentService;
 import kr.hhplus.be.server.domain.payment.PaymentStatus;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.user.User;
@@ -44,44 +45,63 @@ public class PaymentFacadeTest {
     void 결제_정상_쿠폰없음() {
         // given
         Long orderId = 1L;
-        int paymentAmount = 25000;
-        Long userId = 10L;
-        OrderItem item = OrderItem.create(mock(Order.class), 101L, 5, 5000);
-        OrderItemCommand command = new OrderItemCommand(101L, 1, 10000);
-        Order dummyOrder = Order.create(userId, List.of(command));
+        Long userId = 100L;
+        Long productId = 101L;
+        int quantity = 2;
+        int unitPrice = 15000;
+        int totalAmount = quantity * unitPrice;
 
-        dummyOrder.updateItems(List.of(item));
+        // 주문 항목
+        OrderItem orderItem = OrderItem.builder()
+                .id(1000L)
+                .productId(productId)
+                .quantity(quantity)
+                .orderPrice(unitPrice)
+                .createdAt(LocalDateTime.now())
+                .build();
 
-        when(orderService.getOrderOrThrow(orderId)).thenReturn(dummyOrder);
-        when(productService.decreaseStock(101L, 5)).thenReturn(mock(Product.class));
-        when(userCouponService.findByUserId(anyLong())).thenReturn(Collections.emptyList());
-        when(userPointFacade.usePoint(userId, paymentAmount)).thenReturn(mock(User.class));
-        when(orderService.payOrder(orderId)).thenReturn(dummyOrder);
+        // 주문 객체
+        Order order = Order.builder()
+                .id(orderId)
+                .userId(userId)
+                .status(OrderStatus.PENDING)
+                .items(List.of(orderItem))
+                .totalAmount(totalAmount)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        orderItem.setOrder(order);
 
-        // 결제 초기화 및 완료 처리
-        Payment completed = Payment.withoutCoupon(orderId, paymentAmount);
-        completed.complete();
+        // stubbing
+        when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
+        when(orderService.getOrderItems(orderId)).thenReturn(List.of(orderItem));
+        when(productService.decreaseStock(productId, quantity)).thenReturn(mock(Product.class));
+        when(userCouponService.findByUserId(userId)).thenReturn(Collections.emptyList());
+        when(userPointFacade.usePoint(userId, totalAmount)).thenReturn(mock(User.class));
+        when(orderService.pay(orderId)).thenReturn(order);
 
-        when(paymentService.initiateWithoutCoupon(orderId, paymentAmount)).thenReturn(completed);
-        when(paymentService.completePayment(completed.getId())).thenReturn(completed);
+        Payment expected = Payment.withoutCoupon(orderId, totalAmount);
+        expected.complete();
+
+        when(paymentService.initiateWithoutCoupon(orderId, totalAmount)).thenReturn(expected);
+        when(paymentService.completePayment(expected.getId())).thenReturn(expected);
 
         // when
-        Payment result = paymentFacade.processPayment(orderId, paymentAmount);
+        Payment result = paymentFacade.processPayment(orderId, totalAmount);
 
         // then
         assertNotNull(result);
-        assertEquals(PaymentStatus.COMPLETED, result.getStatus());
         assertEquals(orderId, result.getOrderId());
-        assertEquals(paymentAmount, result.getAmount());
+        assertEquals(PaymentStatus.COMPLETED, result.getStatus());
+        assertEquals(totalAmount, result.getAmount());
         assertNull(result.getCouponId());
 
-        verify(orderService).getOrderOrThrow(orderId);
-        verify(productService).decreaseStock(101L, 5);
-        verify(userCouponService).findByUserId(userId);
-        verify(userPointFacade).usePoint(userId, paymentAmount);
-        verify(orderService).payOrder(orderId);
-        verify(paymentService).initiateWithoutCoupon(orderId, paymentAmount);
-        verify(paymentService).completePayment(completed.getId());
+        // verify
+        verify(productService).decreaseStock(productId, quantity);
+        verify(userPointFacade).usePoint(userId, totalAmount);
+        verify(orderService).pay(orderId);
+        verify(paymentService).initiateWithoutCoupon(orderId, totalAmount);
+        verify(paymentService).completePayment(expected.getId());
     }
 
     @Test
@@ -90,28 +110,45 @@ public class PaymentFacadeTest {
         Long orderId = 1L;
         Long userId = 10L;
         Long couponId = 99L;
-        int paymentAmount = 10000;
+        Long productId = 101L;
+        int quantity = 1;
+        int unitPrice = 10000;
         int discount = 2000;
+        int paymentAmount = quantity * unitPrice;
         int finalAmount = paymentAmount - discount;
 
-        // 더미 주문과 주문 항목 설정
-        OrderItem item = OrderItem.create(mock(Order.class), 101L, 1, 10000);
-        OrderItemCommand command = new OrderItemCommand(101L, 1, 10000);
-        Order dummyOrder = Order.create(userId, List.of(command));
+        // 실제 OrderItem 생성
+        OrderItem item = OrderItem.builder()
+                .id(1000L)
+                .productId(productId)
+                .quantity(quantity)
+                .orderPrice(unitPrice)
+                .createdAt(LocalDateTime.now())
+                .build();
 
-        when(orderService.getOrderOrThrow(orderId)).thenReturn(dummyOrder);
-        when(productService.decreaseStock(101L, 1)).thenReturn(mock(Product.class));
+        // 실제 Order 생성
+        Order order = Order.builder()
+                .id(orderId)
+                .userId(userId)
+                .status(OrderStatus.PENDING)
+                .items(List.of(item))
+                .totalAmount(paymentAmount)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
 
-        UserCoupon userCoupon = mock(UserCoupon.class);
-        when(userCoupon.getCouponId()).thenReturn(couponId);
-        when(userCouponService.findByUserId(userId)).thenReturn(List.of(userCoupon));
-        when(userCouponService.useCoupon(couponId)).thenReturn(userCoupon);
+        item.setOrder(order); // 연관관계 연결
+
+        // stubbing
+        when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
+        when(orderService.getOrderItems(orderId)).thenReturn(List.of(item));
+        when(productService.decreaseStock(productId, quantity)).thenReturn(mock(Product.class));
 
         Coupon coupon = Coupon.builder()
                 .id(couponId)
                 .name("테스트쿠폰")
                 .discountRate(20)
-                .maxDiscountAmount(2000)
+                .maxDiscountAmount(discount)
                 .status(CouponStatus.ACTIVE)
                 .expirationAt(LocalDateTime.now().plusDays(1))
                 .createdAt(LocalDateTime.now().minusDays(1))
@@ -120,8 +157,13 @@ public class PaymentFacadeTest {
                 .build();
         when(couponService.getCouponOrThrow(couponId)).thenReturn(coupon);
 
+        UserCoupon userCoupon = mock(UserCoupon.class);
+        when(userCoupon.getCouponId()).thenReturn(couponId);
+        when(userCouponService.findByUserId(userId)).thenReturn(List.of(userCoupon));
+        when(userCouponService.useCoupon(couponId)).thenReturn(userCoupon);
+
         when(userPointFacade.usePoint(userId, finalAmount)).thenReturn(mock(User.class));
-        when(orderService.payOrder(orderId)).thenReturn(dummyOrder);
+        when(orderService.pay(orderId)).thenReturn(order);
 
         Payment completed = Payment.withCoupon(orderId, finalAmount, couponId);
         completed.complete();
@@ -138,88 +180,170 @@ public class PaymentFacadeTest {
         assertEquals(finalAmount, result.getAmount());
         assertEquals(couponId, result.getCouponId());
 
-        verify(productService).decreaseStock(101L, 1);
+        // verify (핵심 상호작용만)
+        verify(productService).decreaseStock(productId, quantity);
         verify(userCouponService).useCoupon(couponId);
-        verify(couponService).getCouponOrThrow(couponId);
         verify(userPointFacade).usePoint(userId, finalAmount);
-        verify(orderService).payOrder(orderId);
+        verify(orderService).pay(orderId);
         verify(paymentService).completePayment(completed.getId());
     }
 
     @Test
     void 결제_실패_재고_부족() {
+        // given
         Long orderId = 1L;
         Long userId = 10L;
-        int paymentAmount = 10000;
+        Long productId = 101L;
+        int quantity = 1;
+        int unitPrice = 10000;
+        int paymentAmount = quantity * unitPrice;
 
-        OrderItem orderItem = OrderItem.create(mock(Order.class), 101L, 1, paymentAmount);
-        OrderItemCommand command = new OrderItemCommand(101L, 1, 10000);
-        Order dummyOrder = Order.create(userId, List.of(command));
+        // 실제 OrderItem
+        OrderItem item = OrderItem.builder()
+                .id(1000L)
+                .productId(productId)
+                .quantity(quantity)
+                .orderPrice(unitPrice)
+                .createdAt(LocalDateTime.now())
+                .build();
 
-        dummyOrder.updateItems(List.of(orderItem));
-        when(orderService.getOrderOrThrow(orderId)).thenReturn(dummyOrder);
+        // 실제 Order
+        Order order = Order.builder()
+                .id(orderId)
+                .userId(userId)
+                .items(List.of(item))
+                .totalAmount(paymentAmount)
+                .status(OrderStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
 
-        // stock 차감 시 예외 발생
+        item.setOrder(order);
+
+        // 스텁 설정
+        when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
+        when(orderService.getOrderItems(orderId)).thenReturn(List.of(item));
+
+        // 예외 발생 설정 (재고 부족)
         doThrow(new IllegalStateException("상품 재고가 부족합니다."))
-                .when(productService).decreaseStock(101L, 1);
+                .when(productService).decreaseStock(productId, quantity);
 
+        // when
         IllegalStateException e = assertThrows(IllegalStateException.class, () -> {
-            paymentFacade.processPayment(orderId, 10000);
+            paymentFacade.processPayment(orderId, paymentAmount);
         });
 
+        // then
         assertEquals("상품 재고가 부족합니다.", e.getMessage());
+
+        // 핵심 검증만 유지
+        verify(productService).decreaseStock(productId, quantity);
     }
 
     @Test
     void 결제_실패_포인트부족() {
+        // given
         Long orderId = 1L;
         Long userId = 10L;
-        int paymentAmount = 10000;
+        Long productId = 101L;
+        int quantity = 1;
+        int unitPrice = 10000;
+        int paymentAmount = quantity * unitPrice;
 
-        OrderItem orderItem = OrderItem.create(mock(Order.class), 101L, 1, paymentAmount);
-        OrderItemCommand command = new OrderItemCommand(101L, 1, 10000);
-        Order dummyOrder = Order.create(userId, List.of(command));
+        // 실제 OrderItem
+        OrderItem item = OrderItem.builder()
+                .id(1000L)
+                .productId(productId)
+                .quantity(quantity)
+                .orderPrice(unitPrice)
+                .createdAt(LocalDateTime.now())
+                .build();
 
-        when(orderService.getOrderOrThrow(orderId)).thenReturn(dummyOrder);
+        // 실제 Order
+        Order order = Order.builder()
+                .id(orderId)
+                .userId(userId)
+                .items(List.of(item))
+                .totalAmount(paymentAmount)
+                .status(OrderStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        item.setOrder(order);
+
+        // stubbing
+        when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
+        when(orderService.getOrderItems(orderId)).thenReturn(List.of(item));
         when(userCouponService.findByUserId(userId)).thenReturn(Collections.emptyList());
-        when(productService.decreaseStock(101L, 1)).thenReturn(mock(Product.class));
-
+        when(productService.decreaseStock(productId, quantity)).thenReturn(mock(Product.class));
         when(userPointFacade.usePoint(userId, paymentAmount))
                 .thenThrow(new IllegalStateException("포인트 부족"));
 
+        // when
         IllegalStateException ex = assertThrows(IllegalStateException.class,
                 () -> paymentFacade.processPayment(orderId, paymentAmount));
+
+        // then
         assertEquals("포인트 부족", ex.getMessage());
+
+        // 핵심 상호작용만 확인
+        verify(productService).decreaseStock(productId, quantity);
+        verify(userPointFacade).usePoint(userId, paymentAmount);
     }
 
     @Test
     void 환불_정상처리() {
+        // given
         Long orderId = 1L;
         Long userId = 10L;
-        int paymentAmount = 10000;
-        OrderItem orderItem = OrderItem.create(mock(Order.class), 101L, 1, paymentAmount);
+        Long productId = 101L;
+        int quantity = 1;
+        int unitPrice = 10000;
+        int paymentAmount = quantity * unitPrice;
+
+        // 1. 실제 OrderItem 생성
+        OrderItem item = OrderItem.builder()
+                .id(1L)
+                .productId(productId)
+                .quantity(quantity)
+                .orderPrice(unitPrice)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        // 2. Order 객체 생성 및 연관관계 설정
         Order dummyOrder = Order.builder()
                 .id(orderId)
                 .userId(userId)
-                .totalAmount(paymentAmount)
                 .status(OrderStatus.PAID)
-                .items(List.of(orderItem))
+                .totalAmount(paymentAmount)
+                .items(List.of(item))
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
+        item.setOrder(dummyOrder);
 
-        when(orderService.getOrderOrThrow(orderId)).thenReturn(dummyOrder);
-        when(productService.increaseStock(101L, 1)).thenReturn(mock(Product.class));
-        when(userPointFacade.refundPoint(userId, paymentAmount, orderId)).thenReturn(mock(User.class));
-
+        // 3. 환불 대상 결제 객체 생성
         Payment refunded = Payment.withoutCoupon(orderId, paymentAmount);
         refunded.complete();
         refunded.refund();
 
+        // 4. Stubbing
+        when(orderService.getOrderOrThrow(orderId)).thenReturn(dummyOrder);
+        when(orderService.getOrderItems(orderId)).thenReturn(List.of(item));
         when(paymentService.refundPayment(orderId)).thenReturn(refunded);
+        when(userPointFacade.refundPoint(userId, paymentAmount, orderId)).thenReturn(mock(User.class));
+        when(productService.increaseStock(productId, quantity)).thenReturn(mock(Product.class));
 
+        // when
         Payment result = paymentFacade.processRefund(orderId);
 
+        // then
         assertEquals(PaymentStatus.REFUND, result.getStatus());
+
+        // 핵심 상호작용 검증
         verify(paymentService).refundPayment(orderId);
+        verify(userPointFacade).refundPoint(userId, paymentAmount, orderId);
+        verify(productService).increaseStock(productId, quantity);
     }
 
     @Test

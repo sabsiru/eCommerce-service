@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.hhplus.be.server.application.order.CreateOrderCommand;
 import kr.hhplus.be.server.application.order.OrderFacade;
 import kr.hhplus.be.server.application.order.OrderItemCommand;
-import kr.hhplus.be.server.application.product.ProductService;
+import kr.hhplus.be.server.domain.product.ProductService;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderStatus;
@@ -47,9 +47,7 @@ public class OrderControllerTest {
     void 주문_생성_성공() throws Exception {
         Long userId = 1L;
         List<OrderItemCommand> itemRequests = List.of(new OrderItemCommand(101L, 2, 5000));
-        CreateOrderCommand request = new CreateOrderCommand();
-        request.setUserId(userId);
-        request.setOrderItemCommands(itemRequests);
+        CreateOrderCommand request = new CreateOrderCommand(userId, itemRequests);
 
         OrderItemResponse itemResponse = new OrderItemResponse(101L, 2, 5000);
         OrderResponse orderResponse = new OrderResponse(1L, userId, List.of(itemResponse), 10_000, OrderStatus.PENDING);
@@ -114,9 +112,9 @@ public class OrderControllerTest {
     @Test
     @DisplayName("주문 생성 실패 - 상품 재고 부족")
     void 주문_생성_실패_재고부족() throws Exception {
-        CreateOrderCommand request = new CreateOrderCommand();
-        request.setUserId(1L);
-        request.setOrderItemCommands(List.of(new OrderItemCommand(101L, 100, 5000)));
+        Long userId = 1L;
+        List<OrderItemCommand> items = List.of(new OrderItemCommand(101L, 100, 5000));
+        CreateOrderCommand request = new CreateOrderCommand(userId, items);
 
         Product product = new Product(101L, "상품", 10000, 0, 1L, LocalDateTime.now(), LocalDateTime.now());
         when(productService.getProductOrThrow(101L)).thenReturn(product);

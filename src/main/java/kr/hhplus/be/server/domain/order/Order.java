@@ -35,8 +35,7 @@ public class Order {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Transient
     private List<OrderItem> items = new ArrayList<>();
 
     @Builder

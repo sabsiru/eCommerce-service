@@ -2,6 +2,7 @@ package kr.hhplus.be.server.application.point;
 
 import kr.hhplus.be.server.domain.point.PointHistory;
 import kr.hhplus.be.server.domain.point.PointHistoryRepository;
+import kr.hhplus.be.server.domain.point.PointHistoryService;
 import kr.hhplus.be.server.domain.point.PointHistoryType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
