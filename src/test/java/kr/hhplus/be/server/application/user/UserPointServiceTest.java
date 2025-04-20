@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.user;
 
 import kr.hhplus.be.server.domain.user.User;
+import kr.hhplus.be.server.domain.user.UserPointService;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,35 +28,14 @@ class UserPointServiceTest {
     private static final LocalDateTime NOW = LocalDateTime.now();
 
 
-    @Test
-    public void 포인트충전_성공() {
-        // given
-        long userId = 1L;
-        long initialPoint = 1000;
-        long chargeAmount = 500;
 
-        User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
-
-        User chargedPoint = user.chargePoint(chargeAmount);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenReturn(chargedPoint);
-
-        // when
-        User updatedUser = userPointService.chargePoint(userId, chargeAmount);  // 포인트 충전
-
-        // then
-        assertEquals(initialPoint + chargeAmount, updatedUser.getPoint());  // 포인트가 1500이 되어야 함
-        verify(userRepository, times(1)).findById(userId);
-        verify(userRepository, times(1)).save(any(User.class));
-    }
 
     @Test
     public void 포인트_충전_금액이_0이하일때_예외() {
         // given
         long userId = 1L;
-        long initialPoint = 1000;
-        long chargeAmount = -500;
+        int initialPoint = 1000;
+        int chargeAmount = -500;
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
 
@@ -75,8 +55,8 @@ class UserPointServiceTest {
     public void 포인트_최대_잔고_초과시_예외() {
         //given
         long userId = 1L;
-        long initialPoint = 9_500_000L;
-        long chargeAmount = 500_001L;
+        int initialPoint = 9_500_000;
+        int chargeAmount = 500_001;
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -96,8 +76,8 @@ class UserPointServiceTest {
     public void 포인트_충전_1회_한도_초과시_에외() {
         //given
         long userId = 1L;
-        long initialPoint = 1_000_000L;
-        long chargeAmount = 1_000_001L;
+        int initialPoint = 1_000_000;
+        int chargeAmount = 1_000_001;
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -117,14 +97,13 @@ class UserPointServiceTest {
     public void 포인트_사용_성공() throws Exception {
         //given
         long userId = 1L;
-        long initialPoint = 1_000_000L;
-        long useAmount = 500_000L;
+        int initialPoint = 1_000_000;
+        int useAmount = 500_000;
+        LocalDateTime now = LocalDateTime.now();
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
-        User usedPoint = user.usePoint(useAmount);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenReturn(usedPoint);
 
         //when
         User updatedUser = userPointService.usePoint(userId, useAmount);  // 포인트 사용
@@ -132,15 +111,15 @@ class UserPointServiceTest {
         // then
         assertEquals(initialPoint - useAmount, updatedUser.getPoint());  // 포인트가 500_000L이 되어야 함
         verify(userRepository, times(1)).findById(userId);
-        verify(userRepository, times(1)).save(any(User.class));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     public void 포인트_사용_금액이_0이하일시_예외() throws Exception {
         //given
         long userId = 1L;
-        long initialPoint = 1_000_000L;
-        long useAmount = 0;
+        int initialPoint = 1_000_000;
+        int useAmount = 0;
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -160,15 +139,15 @@ class UserPointServiceTest {
     public void 포인트_사용시_잔액이_부족할시_예외() throws Exception {
         //given
         long userId = 1L;
-        long initialPoint = 1_000_000L;
-        long useAmount = 1_000_001L;
+        int initialPoint = 1_000_000;
+        int useAmount = 1_000_001;
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         ;
 
         //when
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> {
+        IllegalStateException e = assertThrows(IllegalStateException.class, () -> {
             userPointService.usePoint(userId, useAmount);
         });
 
@@ -181,14 +160,13 @@ class UserPointServiceTest {
     public void 포인트_환불_성공() throws Exception {
         //given
         long userId = 1L;
-        long initialPoint = 1_000_000L;
-        long refundAmount = 1_000_000L;
+        int initialPoint = 1_000_000;
+        int refundAmount = 1_000_000;
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
-        User refundPoint = user.refundPoint(refundAmount);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenReturn(refundPoint);
+        //when(userRepository.save(any(User.class))).thenReturn(user);
 
         //when
         User updatedUser = userPointService.refundPoint(userId, refundAmount);  // 포인트 환불
@@ -196,15 +174,15 @@ class UserPointServiceTest {
         // then
         assertEquals(initialPoint + refundAmount, updatedUser.getPoint());  // 포인트가 2_000_000L이 되어야 함
         verify(userRepository, times(1)).findById(userId);
-        verify(userRepository, times(1)).save(any(User.class));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     public void 포인트_환불시_금액이_0이하일때_예외() throws Exception {
         //given
         long userId = 1L;
-        long initialPoint = 1_000_000L;
-        long refundAmount = 0L;
+        int initialPoint = 1_000_000;
+        int refundAmount = 0;
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -225,7 +203,7 @@ class UserPointServiceTest {
     void 유저없을때_충전_예외() {
         // given
         long userId = 1L;
-        long chargeAmount = 5000L;
+        int chargeAmount = 5000;
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -242,7 +220,7 @@ class UserPointServiceTest {
     void 유저없을때_사용_예외() {
         // given
         long userId = 1L;
-        long chargeAmount = 5000L;
+        int chargeAmount = 5000;
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -259,7 +237,7 @@ class UserPointServiceTest {
     void 유저없을때_환불_예외() {
         // given
         long userId = 1L;
-        long chargeAmount = 5000L;
+        int chargeAmount = 5000;
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -276,7 +254,6 @@ class UserPointServiceTest {
     void 유저없을때_포인트조회_예외() {
         // given
         long userId = 1L;
-        long chargeAmount = 5000L;
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 

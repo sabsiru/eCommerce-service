@@ -1,7 +1,5 @@
-package kr.hhplus.be.server.application.point;
+package kr.hhplus.be.server.domain.point;
 
-import kr.hhplus.be.server.domain.point.PointHistory;
-import kr.hhplus.be.server.domain.point.PointHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,21 +12,21 @@ public class PointHistoryService {
     private final PointHistoryRepository pointHistoryRepository;
 
     public PointHistory saveCharge(Long userId, long amount) {
-        PointHistory history = PointHistory.charge(userId, amount);
-        return pointHistoryRepository.save(history);
+        return save(PointHistory.charge(userId, amount));
     }
 
     public PointHistory saveUse(Long userId, long amount) {
-        PointHistory history = PointHistory.use(userId, amount);
-        return pointHistoryRepository.save(history);
+        return save(PointHistory.use(userId, amount));
     }
 
     public PointHistory saveRefund(Long userId, long amount, Long orderId) {
-        PointHistory history = PointHistory.refund(userId, amount, orderId);
+        return save(PointHistory.refund(userId, amount, orderId));
+    }
+    private PointHistory save(PointHistory history) {
         return pointHistoryRepository.save(history);
     }
 
     public List<PointHistory> getHistories(Long userId) {
-        return pointHistoryRepository.findByUserId(userId);
+        return pointHistoryRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 }

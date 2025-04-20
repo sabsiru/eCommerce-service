@@ -44,14 +44,14 @@ public class UserPointControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(userId))
                 .andExpect(jsonPath("$.name").value("테스터"))
-                .andExpect(jsonPath("$.point").value(updatedUser.point()));
+                .andExpect(jsonPath("$.point").value(updatedUser.getPoint()));
     }
     @Test
     public void 컨트롤러_포인트충전_최대한도_초과() throws Exception{
         //given
         long userId = 1L;
         int chargeAmount = 2;
-        long current = 9_999_999L;
+        int current = 9_999_999;
         User user = new User(userId, "테스터", current, LocalDateTime.now().minusDays(1), LocalDateTime.now());
         when(userPointFacade.chargePoint(eq(userId), eq(chargeAmount))).thenThrow(new IllegalArgumentException("최대 충전 한도는 `10,000,000원` 입니다."));
         //when

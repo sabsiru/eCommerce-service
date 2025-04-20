@@ -1,63 +1,112 @@
 package kr.hhplus.be.server.domain.order;
 
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
+import kr.hhplus.be.server.application.order.OrderItemCommand;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-public record Order(
-        Long id,                // 주문 ID
-        Long userId,            // 주문한 사용자 ID
-        List<OrderItem> items,  // 주문 항목 목록
-        int totalAmount,        // 주문 총 금액 (주문 항목 총액 합계)
-        OrderStatus status,     // 주문 상태: PENDING, PAID, CANCEL, REFUND
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
-) {
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+@Table(name = "orders")  // "order"는 예약어이므로 테이블명 변경
+public class Order {
 
-    public static Order create(Long userId, List<OrderItem> items) {
-        if (userId == null) {
-            throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
-        }
-        if (items == null || items.isEmpty()) {
-            throw new IllegalArgumentException("주문을 찾을 수 없습니다.");
-        }
-        int totalAmount = items.stream().mapToInt(OrderItem::totalPrice).sum();
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        LocalDateTime now = LocalDateTime.now();
-        return new Order(null, userId, items, totalAmount, OrderStatus.PENDING, now, now);
+    private Long userId;
+
+    private int totalAmount;
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+    @Transient
+    private List<OrderItem> items = new ArrayList<>();
+
+    @Builder
+    public Order(Long id, Long userId, List<OrderItem> items, OrderStatus status, LocalDateTime createdAt, LocalDateTime updatedAt,int totalAmount) {
+        this.id = id;
+        this.userId = userId;
+        this.items = items;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.totalAmount = totalAmount; // 실제 금액 계산은 create()에서 처리
     }
 
-    public Order pay() {
+    public static Order create(Long userId, List<OrderItemCommand> commands) {
+        if (commands == null || commands.isEmpty()) {
+            throw new IllegalArgumentException("주문 항목이 비어 있습니다.");
+        }
+
+        Order order = new Order(userId); // 생성자 내부에서 상태 초기화 및 시간 설정
+        order.userId = userId;
+        order.status = OrderStatus.PENDING;
+        for (OrderItemCommand cmd : commands) {
+            OrderItem item = OrderItem.create(order, cmd.getProductId(), cmd.getQuantity(), cmd.getOrderPrice());
+            item.setOrder(order);
+            order.addItem(item);
+        }
+
+        order.totalAmount = order.calculateTotalAmount(); // 총합 계산
+        return order;
+    }
+
+    public Order(Long userId) {
+        this.userId = userId;
+        this.status = OrderStatus.PENDING;
+    }
+
+    public void addItem(OrderItem item) {
+        item.setOrder(this);
+        this.items.add(item);
+    }
+
+    // 결제 처리
+    public void pay() {
         if (this.status != OrderStatus.PENDING) {
             throw new IllegalStateException("결제는 PENDING 상태의 주문에만 가능합니다.");
         }
-        return new Order(this.id, this.userId, this.items, this.totalAmount, OrderStatus.PAID, this.createdAt, LocalDateTime.now());
+        this.status = OrderStatus.PAID;
     }
 
-    public Order cancel() {
+    // 주문 취소
+    public void cancel() {
         if (this.status != OrderStatus.PENDING) {
             throw new IllegalStateException("이미 결제 완료된 주문은 취소할 수 없습니다.");
         }
-        return new Order(this.id, this.userId, this.items, this.totalAmount, OrderStatus.CANCEL, this.createdAt, LocalDateTime.now());
+        this.status = OrderStatus.CANCEL;
     }
 
+    // 총액 재계산
     public int calculateTotalAmount() {
-        return items.stream().mapToInt(OrderItem::totalPrice).sum();
-    }
-
-    public Order updateItems(List<OrderItem> newItems) {
-        int recalculatedTotal = newItems.stream()
+        return this.items.stream()
                 .mapToInt(OrderItem::totalPrice)
                 .sum();
-        return new Order(
-                this.id,
-                this.userId,
-                newItems,
-                recalculatedTotal,
-                this.status,
-                this.createdAt,
-                LocalDateTime.now() // updatedAt 갱신
-        );
+    }
+
+    // 주문 항목 갱신
+    public void updateItems(List<OrderItem> newItems) {
+        this.items.clear();
+        this.items.addAll(newItems);
+        for (OrderItem item : newItems) {
+            item.setOrder(this);
+        }
+        this.totalAmount = calculateTotalAmount();
     }
 }

@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.interfaces.product;
 
-import kr.hhplus.be.server.application.product.ProductService;
+import kr.hhplus.be.server.application.product.ProductFacade;
 import kr.hhplus.be.server.domain.product.Product;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ public class ProductControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private ProductService productService;
+    private ProductFacade productFacade;
 
     @Test
     void 전체상품_정상조회() throws Exception {
@@ -38,7 +38,7 @@ public class ProductControllerTest {
         List<Product> productList = Arrays.asList(product1, product2);
 
         // Stub: ProductService.getAllProducts() 호출 시, 위 productList 반환하도록 설정
-        when(productService.getAllProducts()).thenReturn(productList);
+        when(productFacade.getAllProducts()).thenReturn(productList);
 
         // Act & Assert:
         mockMvc.perform(get("/products")

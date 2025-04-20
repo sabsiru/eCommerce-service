@@ -1,7 +1,5 @@
-package kr.hhplus.be.server.application.payment;
+package kr.hhplus.be.server.domain.payment;
 
-import kr.hhplus.be.server.domain.payment.Payment;
-import kr.hhplus.be.server.domain.payment.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,29 +9,33 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
 
-    public Payment initiatePayment(long orderId, int amount) {
-        Payment payment = Payment.initiate(orderId, amount);
+    // 쿠폰 없는 결제 초기화
+    public Payment initiateWithoutCoupon(Long orderId, int amount) {
+        Payment payment = Payment.withoutCoupon(orderId, amount);  // 정적 팩토리 메서드 사용
         return paymentRepository.save(payment);
     }
 
-    // 쿠폰 사용하여 결제 초기화 (couponId를 포함)
-    public Payment initiatePayment(long orderId, int amount, Long couponId) {
-        Payment payment = Payment.initiate(orderId, amount, couponId);
+    // 쿠폰 포함 결제 초기화 (정적 팩토리 메서드 사용)
+    public Payment initiateWithCoupon(Long orderId, int amount, Long couponId) {
+        Payment payment = Payment.withCoupon(orderId, amount, couponId);
         return paymentRepository.save(payment);
     }
 
+    // 결제 완료 처리
     public Payment completePayment(Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다. paymentId=" + paymentId));
-        Payment updatedPayment = payment.complete();
-        return paymentRepository.save(updatedPayment);
+
+        payment.complete();  // 내부 상태 변경
+        return paymentRepository.save(payment);
     }
 
-
+    // 결제 환불 처리
     public Payment refundPayment(Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다. paymentId=" + paymentId));
-        Payment updatedPayment = payment.refund();
-        return paymentRepository.save(updatedPayment);
+
+        payment.refund();  // 내부 상태 변경
+        return paymentRepository.save(payment);
     }
 }

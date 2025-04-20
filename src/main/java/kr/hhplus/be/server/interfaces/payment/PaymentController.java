@@ -18,13 +18,13 @@ public class PaymentController {
             @PathVariable Long orderId,
             @RequestBody PaymentRequest request
     ) {
-        Payment payment = paymentFacade.processPayment(orderId, request.paymentAmount());
+        Payment payment = paymentFacade.processPayment(orderId, request.getPaymentAmount());
         return ResponseEntity.ok(payment);
     }
 
-    @PatchMapping("/{orderId}/refund")
-    public ResponseEntity<Payment> refund(@PathVariable Long orderId) {
-        Payment payment = paymentFacade.processRefund(orderId);
-        return ResponseEntity.ok(payment);
+    @PatchMapping("/{paymentId}/refund")
+    public ResponseEntity<PaymentResponse> refund(@PathVariable Long paymentId) {
+        Payment payment = paymentFacade.processRefund(paymentId);
+        return ResponseEntity.ok(PaymentResponse.from(payment));
     }
 }

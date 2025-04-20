@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PaymentRepository {
+public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Optional<Payment> findById(long id);
     Payment save(Payment payment);
     List<Payment> findAll();

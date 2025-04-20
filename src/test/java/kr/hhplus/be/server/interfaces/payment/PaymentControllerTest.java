@@ -38,7 +38,13 @@ class PaymentControllerTest {
         Long orderId = 1L;
         PaymentRequest request = new PaymentRequest(10000);
 
-        Payment payment = new Payment(1L, orderId, 10000, PaymentStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now(),null);
+        Payment payment = Payment.builder()
+                .id(1L)
+                .orderId(orderId)
+                .amount(10000)
+                .status(PaymentStatus.COMPLETED)
+                .couponId(null)
+                .build();
         when(paymentFacade.processPayment(eq(orderId), eq(10000)))
                 .thenReturn(payment);
 
@@ -65,7 +71,13 @@ class PaymentControllerTest {
         // 20% 할인 쿠폰이지만 최대 할인액 2,000원 적용: 15000 * 0.2 = 3000이 계산되나, 최대 2,000원으로 제한.
         int finalPaymentAmount = 15000 - 2000; // 13000
 
-        Payment payment = new Payment(1L, orderId, finalPaymentAmount, PaymentStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now(),couponId);
+        Payment payment = Payment.builder()
+                .id(1L)
+                .orderId(orderId)
+                .amount(finalPaymentAmount)
+                .status(PaymentStatus.COMPLETED)
+                .couponId(couponId)
+                .build();
         when(paymentFacade.processPayment(eq(orderId), eq(15000)))
                 .thenReturn(payment);
 
@@ -85,16 +97,22 @@ class PaymentControllerTest {
     void 결제_환불_성공_쿠폰없을때() throws Exception {
         // given
         long orderId = 1L;
-        Payment refundPayment = new Payment(10L, orderId, 30000, PaymentStatus.REFUND, LocalDateTime.now(), LocalDateTime.now(),null);
+        Payment refundPayment = Payment.builder()
+                .id(1L)
+                .orderId(orderId)
+                .amount(10000)
+                .status(PaymentStatus.REFUND)
+                .couponId(null)
+                .build();
 
         when(paymentFacade.processRefund(orderId)).thenReturn(refundPayment);
 
         // when & then
         mockMvc.perform(patch("/payments/{orderId}/refund", orderId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(refundPayment.id()))
+                .andExpect(jsonPath("$.id").value(refundPayment.getId()))
                 .andExpect(jsonPath("$.orderId").value(orderId))
-                .andExpect(jsonPath("$.amount").value(refundPayment.amount()))
+                .andExpect(jsonPath("$.amount").value(refundPayment.getAmount()))
                 .andExpect(jsonPath("$.status").value("REFUND"))
                 .andExpect(jsonPath("$.couponId").doesNotExist());
     }
@@ -105,24 +123,22 @@ class PaymentControllerTest {
         long orderId = 1L;
         Long couponId = 500L;
         // 환불 Payment: couponId가 존재하는 경우
-        Payment refundPayment = new Payment(
-                10L,
-                orderId,
-                25000,
-                PaymentStatus.REFUND,
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                couponId
-        );
+        Payment refundPayment = Payment.builder()
+                .id(1L)
+                .orderId(orderId)
+                .amount(25000)
+                .status(PaymentStatus.REFUND)
+                .couponId(couponId)
+                .build();
         when(paymentFacade.processRefund(eq(orderId))).thenReturn(refundPayment);
 
         // when & then
         mockMvc.perform(patch("/payments/{orderId}/refund", orderId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(refundPayment.id()))
+                .andExpect(jsonPath("$.id").value(refundPayment.getId()))
                 .andExpect(jsonPath("$.orderId").value(orderId))
-                .andExpect(jsonPath("$.amount").value(refundPayment.amount()))
+                .andExpect(jsonPath("$.amount").value(refundPayment.getAmount()))
                 .andExpect(jsonPath("$.status").value("REFUND"))
                 .andExpect(jsonPath("$.couponId").value(couponId));
     }

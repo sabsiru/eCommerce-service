@@ -23,11 +23,11 @@ class UserCouponTest {
         );
 
         // when
-        UserCoupon usedCoupon = userCoupon.use();
+        userCoupon.use();
 
         // then
-        assertEquals(UserCouponStatus.USED, usedCoupon.status());
-        assertNotNull(usedCoupon.usedAt());
+        assertEquals(UserCouponStatus.USED, userCoupon.getStatus());
+        assertNotNull(userCoupon.getUsedAt());
     }
 
     @Test
@@ -60,15 +60,15 @@ class UserCouponTest {
         UserCoupon usedCoupon = new UserCoupon(id, userId, couponId, UserCouponStatus.USED, issuedAt, usedAt);
 
         // Act: refund() 호출
-        UserCoupon refundedCoupon = usedCoupon.refund();
+        usedCoupon.refund();
 
         // Assert: 반환된 쿠폰의 상태가 ISSUED로 변경되고, usedAt이 null이어야 함
-        assertEquals(UserCouponStatus.ISSUED, refundedCoupon.status(), "환불 후 쿠폰 상태는 ISSUED여야 합니다.");
-        assertEquals(id, refundedCoupon.id());
-        assertEquals(userId, refundedCoupon.userId());
-        assertEquals(couponId, refundedCoupon.couponId());
-        assertEquals(issuedAt, refundedCoupon.issuedAt());
-        assertNull(refundedCoupon.usedAt(), "환불된 쿠폰의 usedAt은 null이어야 합니다.");
+        assertEquals(UserCouponStatus.ISSUED, usedCoupon.getStatus(), "환불 후 쿠폰 상태는 ISSUED여야 합니다.");
+        assertEquals(id, usedCoupon.getId());
+        assertEquals(userId, usedCoupon.getUserId());
+        assertEquals(couponId, usedCoupon.getCouponId());
+        assertEquals(issuedAt, usedCoupon.getIssuedAt());
+        assertNull(usedCoupon.getUsedAt(), "환불된 쿠폰의 usedAt은 null이어야 합니다.");
     }
 
     @Test

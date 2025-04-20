@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.interfaces.UserPoint;
 
-import kr.hhplus.be.server.application.user.ChargePointRequest;
 import kr.hhplus.be.server.application.user.UserPointFacade;
 import kr.hhplus.be.server.domain.user.User;
 import lombok.RequiredArgsConstructor;

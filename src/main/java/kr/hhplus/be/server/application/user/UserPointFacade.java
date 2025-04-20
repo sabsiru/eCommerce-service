@@ -1,14 +1,15 @@
 package kr.hhplus.be.server.application.user;
 
 import jakarta.transaction.Transactional;
-import kr.hhplus.be.server.application.point.PointHistoryService;
+import kr.hhplus.be.server.domain.point.PointHistoryService;
 import kr.hhplus.be.server.domain.user.User;
-import kr.hhplus.be.server.domain.user.UserRepository;
+import kr.hhplus.be.server.domain.user.UserPointService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
+@Transactional
 public class UserPointFacade {
 
     private final UserPointService userPointService;

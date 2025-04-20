@@ -1,42 +1,67 @@
 package kr.hhplus.be.server.domain.coupon;
 
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
-public record Coupon(
-        Long id,
-        String name,
-        int discountRate,         // 할인율 (%)
-        int maxDiscountAmount,    // 최대 할인 금액
-        CouponStatus status,      // 상태: 활성화, 만료
-        LocalDateTime expirationAt, // 만료 일자
-        LocalDateTime createdAt,
-        int limitCount,
-        int issuedCount // 현재 발급된 수량
-) {
-    public Coupon {
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+public class Coupon {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    private int discountRate;
+
+    private int maxDiscountAmount;
+
+    @Enumerated(EnumType.STRING)
+    private CouponStatus status;
+
+    private LocalDateTime expirationAt;
+
+    private LocalDateTime createdAt;
+
+    private int limitCount;
+
+    private int issuedCount;
+
+    @Builder
+    public Coupon(Long id, String name, int discountRate, int maxDiscountAmount, CouponStatus status,
+                  LocalDateTime expirationAt, LocalDateTime createdAt, int limitCount, int issuedCount) {
         validateDiscountRate(discountRate);
+        this.id = id;
+        this.name = name;
+        this.discountRate = discountRate;
+        this.maxDiscountAmount = maxDiscountAmount;
+        this.status = status;
+        this.expirationAt = expirationAt;
+        this.createdAt = createdAt;
+        this.limitCount = limitCount;
+        this.issuedCount = issuedCount;
     }
 
-    public static Coupon create(
-            Long id,
-            String name,
-            int discountRate,
-            int maxDiscountAmount,
-            LocalDateTime expirationAt,
-            int limitCount
-    ) {
+    public static Coupon create(String name, int discountRate, int maxDiscountAmount,
+                                LocalDateTime expirationAt, int limitCount) {
         validateDiscountRate(discountRate);
-        return new Coupon(
-                id,
-                name,
-                discountRate,
-                maxDiscountAmount,
-                CouponStatus.ACTIVE,
-                expirationAt,
-                LocalDateTime.now(),
-                limitCount,
-                0
-        );
+        return Coupon.builder()
+                .name(name)
+                .discountRate(discountRate)
+                .maxDiscountAmount(maxDiscountAmount)
+                .status(CouponStatus.ACTIVE)
+                .expirationAt(expirationAt)
+                .createdAt(LocalDateTime.now())
+                .limitCount(limitCount)
+                .issuedCount(0)
+                .build();
     }
 
     public void validateUsable() {
@@ -49,7 +74,6 @@ public record Coupon(
         if (status != CouponStatus.ACTIVE) {
             throw new IllegalArgumentException("사용 할 수 없는 쿠폰 입니다.");
         }
-
     }
 
     public boolean isExpired() {
@@ -70,20 +94,19 @@ public record Coupon(
             throw new IllegalStateException("쿠폰 발급 수량이 모두 소진되었습니다.");
         }
 
-        // 한도에 도달하면 상태를 EXPIRED로 변경
         CouponStatus updatedStatus = (updatedIssuedCount == this.limitCount)
                 ? CouponStatus.EXPIRED
                 : this.status;
 
         return new Coupon(
-                id,
-                name,
-                discountRate,
-                maxDiscountAmount,
+                this.id,
+                this.name,
+                this.discountRate,
+                this.maxDiscountAmount,
                 updatedStatus,
-                expirationAt,
-                createdAt,
-                limitCount,
+                this.expirationAt,
+                this.createdAt,
+                this.limitCount,
                 updatedIssuedCount
         );
     }
@@ -93,19 +116,17 @@ public record Coupon(
         return Math.min(discount, maxDiscountAmount);
     }
 
-
     public Coupon expire() {
         return new Coupon(
-                id,
-                name,
-                discountRate,
-                maxDiscountAmount,
+                this.id,
+                this.name,
+                this.discountRate,
+                this.maxDiscountAmount,
                 CouponStatus.EXPIRED,
-                expirationAt,
-                createdAt,
-                limitCount,
-                issuedCount
+                this.expirationAt,
+                this.createdAt,
+                this.limitCount,
+                this.issuedCount
         );
     }
-
 }
