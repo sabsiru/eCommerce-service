@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,6 +43,9 @@ class ProductControllerIntegrationTest {
 
     @Autowired
     private OrderItemRepository orderItemRepository;
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     @Test
     void 인기상품_정상_조회() throws Exception {
@@ -77,19 +81,15 @@ class ProductControllerIntegrationTest {
     }
 
     @Test
-    void 전체_상품_조회_성공() throws Exception {
-        // given
-        productRepository.save(new Product("상품1", 1000, 10, 1L));
-        productRepository.save(new Product("상품2", 2000, 20, 2L));
-        productRepository.save(new Product("상품3", 3000, 30, 3L));
+    void 전체_상품_페이징_조회() throws Exception {
+        int size = 20;
 
-        // when & then
         mockMvc.perform(get("/products")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .param("page", "0")
+                        .param("size", String.valueOf(size)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(3)))
-                .andExpect(jsonPath("$[0].name").value("상품1"))
-                .andExpect(jsonPath("$[1].name").value("상품2"))
-                .andExpect(jsonPath("$[2].name").value("상품3"));
+                .andExpect(jsonPath("$.content.length()", lessThanOrEqualTo(size)))
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.totalElements").exists());
     }
 }

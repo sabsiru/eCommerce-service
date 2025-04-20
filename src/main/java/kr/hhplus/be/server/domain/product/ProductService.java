@@ -1,9 +1,9 @@
 package kr.hhplus.be.server.domain.product;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -18,8 +18,8 @@ public class ProductService {
     }
 
     // 모든 상품 조회
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public Page<Product> getProducts(Pageable pageable) {
+        return productRepository.findAll(pageable);
     }
 
     // 재고 차감

@@ -2,6 +2,8 @@ package kr.hhplus.be.server.infrastructure.order;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import kr.hhplus.be.server.domain.order.OrderItem;
+import kr.hhplus.be.server.domain.order.QOrder;
 import kr.hhplus.be.server.domain.order.QOrderItem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -32,6 +34,17 @@ public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository {
                 .groupBy(orderItem.productId)
                 .orderBy(orderItem.quantity.sum().desc())
                 .limit(5)
+                .fetch();
+    }
+
+    public List<OrderItem> findOrderItemsByUserId(Long userId) {
+        QOrder order = QOrder.order;
+        QOrderItem orderItem = QOrderItem.orderItem;
+
+        return queryFactory
+                .selectFrom(orderItem)
+                .join(orderItem.order, order)
+                .where(order.userId.eq(userId))
                 .fetch();
     }
 }

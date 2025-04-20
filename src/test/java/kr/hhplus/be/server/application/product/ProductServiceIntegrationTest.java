@@ -7,8 +7,9 @@ import kr.hhplus.be.server.domain.product.ProductService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -30,7 +31,8 @@ class ProductServiceIntegrationTest {
         productRepository.save(new Product("상품2", 2000, 20, 1L));
 
         // when
-        List<Product> products = productService.getAllProducts();
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Product> products = productService.getProducts(pageable);
 
         // then
         assertThat(products).hasSize(2);

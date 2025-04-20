@@ -14,13 +14,15 @@ spring:
   jpa:
     open-in-view: false
     generate-ddl: false
-    show-sql: false
+    show-sql: true # false
     hibernate:
-      ddl-auto: none
+      ddl-auto: update # none
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
-
+logging:
+  level:
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
 ---
 spring.config.activate.on-profile: local, test
 
