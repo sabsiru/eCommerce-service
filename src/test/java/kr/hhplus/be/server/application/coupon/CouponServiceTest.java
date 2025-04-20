@@ -1,8 +1,6 @@
 package kr.hhplus.be.server.application.coupon;
 
-import kr.hhplus.be.server.domain.coupon.Coupon;
-import kr.hhplus.be.server.domain.coupon.CouponRepository;
-import kr.hhplus.be.server.domain.coupon.CouponStatus;
+import kr.hhplus.be.server.domain.coupon.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +23,8 @@ class CouponServiceTest {
     @Mock
     private CouponRepository couponRepository;
 
+    @Mock
+    private UserCouponRepository userCouponRepository;
     @Test
     void 쿠폰_단건조회_성공() {
         Long couponId = 1L;
@@ -59,6 +59,7 @@ class CouponServiceTest {
 
     @Test
     void 쿠폰_발급_성공() {
+        Long userId = 1L;
         Long couponId = 1L;
         Coupon coupon = Coupon.builder()
                 .id(couponId)
@@ -73,19 +74,26 @@ class CouponServiceTest {
                 .build();
 
         Coupon updated = coupon.increaseIssuedCount();
+        UserCoupon issued = UserCoupon.issue(userId, couponId);
 
         when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
         when(couponRepository.save(any())).thenReturn(updated);
+        when(userCouponRepository.findByUserIdAndCouponId(userId, couponId)).thenReturn(Optional.empty());
+        when(userCouponRepository.save(any())).thenReturn(issued);
 
-        Coupon result = couponService.issueCoupon(couponId);
+        UserCoupon result = couponService.issueCoupon(userId, couponId);
 
-        assertEquals(1, result.getIssuedCount());
-        verify(couponRepository).findById(couponId);
+        assertNotNull(result);
+        assertEquals(userId, result.getUserId());
+        assertEquals(couponId, result.getCouponId());
+        assertEquals(UserCouponStatus.ISSUED, result.getStatus());
         verify(couponRepository).save(any());
+        verify(userCouponRepository).save(any());
     }
 
     @Test
     void 쿠폰_발급_실패_수량초과() {
+        Long userId = 1L;
         Long couponId = 1L;
         Coupon coupon = Coupon.builder()
                 .id(couponId)
@@ -101,11 +109,12 @@ class CouponServiceTest {
 
         when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
 
-        assertThrows(IllegalStateException.class, () -> couponService.issueCoupon(couponId));
+        assertThrows(IllegalStateException.class, () -> couponService.issueCoupon(userId,couponId));
     }
 
     @Test
     void 쿠폰_발급_실패_만료() {
+        Long userId = 1L;
         Long couponId = 1L;
         Coupon expiredCoupon = Coupon.builder()
                 .id(couponId)
@@ -121,14 +130,16 @@ class CouponServiceTest {
 
         when(couponRepository.findById(couponId)).thenReturn(Optional.of(expiredCoupon));
 
-        assertThrows(IllegalArgumentException.class, () -> couponService.issueCoupon(couponId));
+        assertThrows(IllegalArgumentException.class, () -> couponService.issueCoupon(userId,couponId));
     }
 
     @Test
     @DisplayName("쿠폰 발급 수량이 한도에 도달할 때 - 상태 자동 EXPIRED 전환")
     void 쿠폰_발급_경계값_도달_상태_변경() {
+        Long userId = 1L;
+        Long couponId = 1L;
         Coupon originalCoupon = Coupon.builder()
-                .id(1L)
+                .id(couponId)
                 .name("10% 할인")
                 .discountRate(10)
                 .maxDiscountAmount(5000)
@@ -140,39 +151,68 @@ class CouponServiceTest {
                 .build();
 
         Coupon updatedCoupon = originalCoupon.increaseIssuedCount();
+        UserCoupon issued = UserCoupon.issue(userId, couponId);
 
+        when(userCouponRepository.findByUserIdAndCouponId(userId, couponId)).thenReturn(Optional.empty());
         when(couponRepository.findById(1L)).thenReturn(Optional.of(originalCoupon));
         when(couponRepository.save(any(Coupon.class))).thenReturn(updatedCoupon);
+        when(userCouponRepository.save(any())).thenReturn(issued);
 
-        Coupon result = couponService.issueCoupon(1L);
+        UserCoupon result = couponService.issueCoupon(userId, couponId);
 
-        assertEquals(10, result.getIssuedCount());
-        assertEquals(CouponStatus.EXPIRED, result.getStatus());
+        assertEquals(UserCouponStatus.ISSUED, result.getStatus());
+        assertEquals(couponId, result.getCouponId());
     }
 
     @Test
     @DisplayName("쿠폰 발급 한도 직전 상태 유지")
     void 쿠폰_발급_한도_직전_상태_유지() {
+        // given
+        Long userId = 1L;
+        Long couponId = 1L;
+        LocalDateTime now = LocalDateTime.now();
+
+        // 기존 Coupon 엔티티 세팅 (limitCount=5, issuedCount=3)
         Coupon originalCoupon = Coupon.builder()
-                .id(1L)
+                .id(couponId)
                 .name("10% 할인")
                 .discountRate(10)
                 .maxDiscountAmount(5000)
                 .status(CouponStatus.ACTIVE)
-                .expirationAt(LocalDateTime.now().plusDays(1))
-                .createdAt(LocalDateTime.now())
+                .expirationAt(now.plusDays(1))
+                .createdAt(now)
                 .limitCount(5)
                 .issuedCount(3)
                 .build();
 
+        // Coupon 도메인에서 increaseIssuedCount() 호출 시 반환할 값
         Coupon updatedCoupon = originalCoupon.increaseIssuedCount();
 
-        when(couponRepository.findById(1L)).thenReturn(Optional.of(originalCoupon));
-        when(couponRepository.save(any(Coupon.class))).thenReturn(updatedCoupon);
+        // 발급 후 저장될 UserCoupon
+        UserCoupon issuedUserCoupon = UserCoupon.issue(userId, couponId);
 
-        Coupon result = couponService.issueCoupon(1L);
+        // stub
+        when(userCouponRepository.findByUserIdAndCouponId(userId, couponId))
+                .thenReturn(Optional.empty());
+        when(couponRepository.findById(couponId))
+                .thenReturn(Optional.of(originalCoupon));
+        when(couponRepository.save(any(Coupon.class)))
+                .thenReturn(updatedCoupon);
+        when(userCouponRepository.save(any(UserCoupon.class)))
+                .thenReturn(issuedUserCoupon);
 
-        assertEquals(4, result.getIssuedCount());
-        assertEquals(CouponStatus.ACTIVE, result.getStatus());
+        // when
+        UserCoupon result = couponService.issueCoupon(userId, couponId);
+
+        // then
+        assertNotNull(result);
+        assertEquals(userId, result.getUserId());
+        assertEquals(couponId, result.getCouponId());
+        assertEquals(UserCouponStatus.ISSUED, result.getStatus());
+
+        verify(couponRepository).findById(couponId);
+        verify(couponRepository).save(any(Coupon.class));
+        verify(userCouponRepository).findByUserIdAndCouponId(userId, couponId);
+        verify(userCouponRepository).save(any(UserCoupon.class));
     }
 }

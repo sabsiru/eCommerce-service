@@ -2,8 +2,8 @@ package kr.hhplus.be.server.application.coupon;
 
 import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.coupon.Coupon;
+import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
-import kr.hhplus.be.server.domain.coupon.UserCouponService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,21 +13,12 @@ import org.springframework.stereotype.Service;
 public class CouponFacade {
 
     private final CouponService couponService;
-    private final UserCouponService userCouponService;
 
     /**
      * 사용자에게 쿠폰을 발급합니다. (선착순 정책 포함)
      */
     public UserCoupon issueCoupon(Long userId, Long couponId) {
-        // 1. 이미 쿠폰을 발급받은 경우 예외 처리
-        userCouponService.validateNotDuplicated(userId, couponId);
-
-        // 2. 쿠폰 유효성 검증 및 발급 수 증가
-        Coupon coupon = couponService.issueCoupon(couponId);
-
-        // 3. 사용자 쿠폰 생성 및 저장
-        UserCoupon userCoupon = UserCoupon.issue(userId, coupon.getId());
-        return userCouponService.save(userCoupon);
+        return couponService.issueCoupon(userId, couponId);
     }
 
     /**
