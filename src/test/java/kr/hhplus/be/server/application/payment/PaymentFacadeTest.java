@@ -1,8 +1,6 @@
 package kr.hhplus.be.server.application.payment;
 
-import kr.hhplus.be.server.application.coupon.CouponService;
-import kr.hhplus.be.server.domain.coupon.UserCouponService;
-import kr.hhplus.be.server.application.order.OrderItemCommand;
+import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.product.ProductService;
 import kr.hhplus.be.server.application.user.UserPointFacade;
@@ -38,7 +36,6 @@ public class PaymentFacadeTest {
     @Mock private ProductService productService;
     @Mock private UserPointFacade userPointFacade;
     @Mock private PaymentService paymentService;
-    @Mock private UserCouponService userCouponService;
     @Mock private CouponService couponService;
 
     @Test
@@ -76,7 +73,7 @@ public class PaymentFacadeTest {
         when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
         when(orderService.getOrderItems(orderId)).thenReturn(List.of(orderItem));
         when(productService.decreaseStock(productId, quantity)).thenReturn(mock(Product.class));
-        when(userCouponService.findByUserId(userId)).thenReturn(Collections.emptyList());
+        when(couponService.findByUserId(userId)).thenReturn(Collections.emptyList());
         when(userPointFacade.usePoint(userId, totalAmount)).thenReturn(mock(User.class));
         when(orderService.pay(orderId)).thenReturn(order);
 
@@ -159,8 +156,8 @@ public class PaymentFacadeTest {
 
         UserCoupon userCoupon = mock(UserCoupon.class);
         when(userCoupon.getCouponId()).thenReturn(couponId);
-        when(userCouponService.findByUserId(userId)).thenReturn(List.of(userCoupon));
-        when(userCouponService.useCoupon(couponId)).thenReturn(userCoupon);
+        when(couponService.findByUserId(userId)).thenReturn(List.of(userCoupon));
+        when(couponService.useCoupon(couponId)).thenReturn(userCoupon);
 
         when(userPointFacade.usePoint(userId, finalAmount)).thenReturn(mock(User.class));
         when(orderService.pay(orderId)).thenReturn(order);
@@ -182,7 +179,7 @@ public class PaymentFacadeTest {
 
         // verify (핵심 상호작용만)
         verify(productService).decreaseStock(productId, quantity);
-        verify(userCouponService).useCoupon(couponId);
+        verify(couponService).useCoupon(couponId);
         verify(userPointFacade).usePoint(userId, finalAmount);
         verify(orderService).pay(orderId);
         verify(paymentService).completePayment(completed.getId());
@@ -274,7 +271,7 @@ public class PaymentFacadeTest {
         // stubbing
         when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
         when(orderService.getOrderItems(orderId)).thenReturn(List.of(item));
-        when(userCouponService.findByUserId(userId)).thenReturn(Collections.emptyList());
+        when(couponService.findByUserId(userId)).thenReturn(Collections.emptyList());
         when(productService.decreaseStock(productId, quantity)).thenReturn(mock(Product.class));
         when(userPointFacade.usePoint(userId, paymentAmount))
                 .thenThrow(new IllegalStateException("포인트 부족"));

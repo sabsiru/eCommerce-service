@@ -8,16 +8,35 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
-public class UserCouponService {
+public class CouponService {
 
+    private final CouponRepository couponRepository;
     private final UserCouponRepository userCouponRepository;
 
     /**
-     * 사용자 쿠폰 저장
+     * 쿠폰 단건 조회
      */
-    public UserCoupon save(UserCoupon userCoupon) {
+    public Coupon getCouponOrThrow(Long couponId) {
+        return couponRepository.findById(couponId)
+                .orElseThrow(() -> new IllegalArgumentException("쿠폰을 찾을 수 없습니다. couponId=" + couponId));
+    }
+
+    /**
+     * 쿠폰 발급 처리 (수량 증가 및 상태 만료 처리 포함)
+     */
+    public UserCoupon issueCoupon(Long userId, Long couponId) {
+        Optional<UserCoupon> existing = userCouponRepository.findByUserIdAndCouponId(userId, couponId);
+        if (existing.isPresent()) {
+            throw new IllegalStateException("이미 발급받은 쿠폰입니다.");
+        }
+        Coupon coupon = getCouponOrThrow(couponId);
+        Coupon updated = coupon.increaseIssuedCount();
+        couponRepository.save(updated);
+
+        UserCoupon userCoupon = UserCoupon.issue(userId, coupon.getId());
         return userCouponRepository.save(userCoupon);
     }
+
 
     /**
      * ID로 사용자 쿠폰 조회 (없으면 예외)
@@ -52,13 +71,4 @@ public class UserCouponService {
         return userCoupon;
     }
 
-    /**
-     * 사용자 ID와 쿠폰 ID로 중복 발급 검증
-     */
-    public void validateNotDuplicated(Long userId, Long couponId) {
-        Optional<UserCoupon> existing = userCouponRepository.findByUserIdAndCouponId(userId, couponId);
-        if (existing.isPresent()) {
-            throw new IllegalStateException("이미 발급받은 쿠폰입니다.");
-        }
-    }
 }

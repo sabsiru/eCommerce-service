@@ -1,8 +1,7 @@
 package kr.hhplus.be.server.application.payment;
 
 import jakarta.transaction.Transactional;
-import kr.hhplus.be.server.application.coupon.CouponService;
-import kr.hhplus.be.server.domain.coupon.UserCouponService;
+import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.product.ProductService;
 import kr.hhplus.be.server.application.user.UserPointFacade;
@@ -26,7 +25,6 @@ public class PaymentFacade {
     private final UserPointFacade userPointFacade;
     private final PaymentService paymentService;
     private final CouponService couponService;
-    private final UserCouponService userCouponService;
     private final ProductService productService;
 
     public Payment processPayment(Long orderId, int paymentAmount) {
@@ -38,12 +36,12 @@ public class PaymentFacade {
         }
 
         int calculateDiscount = 0;
-        List<UserCoupon> byUserId = userCouponService.findByUserId(order.getUserId());
+        List<UserCoupon> byUserId = couponService.findByUserId(order.getUserId());
 
         if (!byUserId.isEmpty()) {
             Long couponId = byUserId.get(0).getCouponId();
             calculateDiscount = calculateDiscount(couponId, orderId);
-            userCouponService.useCoupon(couponId);
+            couponService.useCoupon(couponId);
         }
 
         int finalPaymentAmount = paymentAmount - calculateDiscount;
@@ -71,7 +69,7 @@ public class PaymentFacade {
         userPointFacade.refundPoint(order.getUserId(), refundPayment.getAmount(), order.getId());
 
         if (refundPayment.getCouponId() != null) {
-            userCouponService.refundCoupon(refundPayment.getCouponId());
+            couponService.refundCoupon(refundPayment.getCouponId());
         }
 
         List<OrderItem> items = orderService.getOrderItems(order.getId());
