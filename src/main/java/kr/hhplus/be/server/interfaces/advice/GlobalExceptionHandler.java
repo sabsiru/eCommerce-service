@@ -17,7 +17,5 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 
-
-
     // 필요에 따라 다른 예외 처리 메서드 추가
 }

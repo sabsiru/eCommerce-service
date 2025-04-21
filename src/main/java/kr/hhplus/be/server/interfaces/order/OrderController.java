@@ -1,14 +1,14 @@
 package kr.hhplus.be.server.interfaces.order;
 
-import kr.hhplus.be.server.application.order.CreateOrderCommand;
+import kr.hhplus.be.server.application.order.OrderCommand;
 import kr.hhplus.be.server.application.order.OrderFacade;
-import kr.hhplus.be.server.domain.order.Order;
-import kr.hhplus.be.server.domain.order.OrderItem;
+import kr.hhplus.be.server.application.order.OrderResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,28 +18,36 @@ public class OrderController {
     private final OrderFacade orderFacade;
 
     @PostMapping
-    public ResponseEntity<OrderResponse> create(@RequestBody CreateOrderCommand request) {
-        OrderResponse orderResponse = orderFacade.processOrder(request);
-        return ResponseEntity.ok(orderResponse);
+    public ResponseEntity<OrderResponse> create(@RequestBody OrderRequest request) {
+        List<OrderCommand.Item> items = request.getItems().stream()
+                .map(i -> new OrderCommand.Item(i.getProductId(), i.getQuantity(),i.getItemPrice()))
+                .collect(Collectors.toList());
+
+        OrderCommand.Create command = new OrderCommand.Create(request.getUserId(), items);
+
+        // Facade 호출
+        OrderResult.Create result = orderFacade.processOrder(command);
+
+        // Result → Web
+        OrderResponse response = OrderResponse.from(result);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<List<OrderResponse>> getOrdersByUser(@PathVariable Long userId) {
-        List<Order> orders = orderFacade.getOrdersByUser(userId);
-        List<OrderResponse> responseList = orders.stream()
-                .map(order -> {
-                    List<OrderItem> items = orderFacade.getOrderItems(order.getId()); // facade 통해 조회
-                    return OrderResponse.from(order, items);
-                })
-                .toList();
+        List<OrderResult.Create> results = orderFacade.getOrdersByUser(userId);
+
+        List<OrderResponse> responseList = results.stream()
+                .map(OrderResponse::from)
+                .collect(Collectors.toList());
+
         return ResponseEntity.ok(responseList);
     }
 
     @PatchMapping("/{orderId}/cancel")
     public ResponseEntity<OrderResponse> cancel(@PathVariable Long orderId) {
-        Order canceledOrder = orderFacade.cancelOrder(orderId);
-        List<OrderItem> items = orderFacade.getOrderItems(orderId);
-        return ResponseEntity.ok(OrderResponse.from(canceledOrder, items));
+        OrderResult.Create result = orderFacade.cancelOrder(orderId);
+        return ResponseEntity.ok(OrderResponse.from(result));
     }
 
 }

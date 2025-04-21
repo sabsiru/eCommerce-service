@@ -33,33 +33,31 @@ public class OrderItem {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @Builder
-    private OrderItem(Long id, Order order, Long productId, int quantity, int orderPrice, LocalDateTime createdAt) {
-        this.id = id;
+    public OrderItem(Order order, Long productId, int quantity, int orderPrice) {
+        if (order == null) {
+            throw new IllegalArgumentException("주문 정보가 잘 못 입력 되었습니다.");
+        }
+        if (productId == null) {
+            throw new IllegalArgumentException("상품 정보가 잘 못 입력 되었습니다.");
+        }
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("수량은 0보다 커야 합니다.");
+        }
+        if (orderPrice <= 0) {
+            throw new IllegalArgumentException("주문 가격은 0보다 커야 합니다.");
+        }
         this.order = order;
         this.productId = productId;
         this.quantity = quantity;
         this.orderPrice = orderPrice;
-        this.createdAt = createdAt;
+        // createdAt는 Hibernate가 자동 채워줌
     }
 
-    public static OrderItem create(Order order, Long productId, int quantity, int orderPrice) {
-        if (order == null) throw new IllegalArgumentException("주문 정보가 잘 못 입력 되었습니다.");
-        if (productId == null) throw new IllegalArgumentException("상품 정보가 잘 못 입력 되었습니다.");
-        if (quantity <= 0) throw new IllegalArgumentException("수량은 0보다 커야 합니다.");
-        if (orderPrice <= 0) throw new IllegalArgumentException("주문 가격은 0보다 커야 합니다.");
-
-        return OrderItem.builder()
-                .order(order)
-                .productId(productId)
-                .quantity(quantity)
-                .orderPrice(orderPrice)
-                .createdAt(LocalDateTime.now())
-                .build();
-    }
-
-    public void setOrder(Order order) {
-        this.order = order;
+    /**
+     * 도메인에서 사용하기 위한 팩토리 메서드
+     */
+    public static OrderItem of(Order order, Long productId, int quantity, int orderPrice) {
+        return new OrderItem(order, productId, quantity, orderPrice);
     }
 
     public int totalPrice() {

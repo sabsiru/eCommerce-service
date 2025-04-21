@@ -2,14 +2,13 @@ package kr.hhplus.be.server.interfaces.product;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
-import kr.hhplus.be.server.application.order.CreateOrderCommand;
-import kr.hhplus.be.server.application.order.OrderItemCommand;
+import kr.hhplus.be.server.application.order.OrderCommand;
 import kr.hhplus.be.server.domain.order.Order;
+import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderItemRepository;
 import kr.hhplus.be.server.domain.order.OrderRepository;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductRepository;
-import kr.hhplus.be.server.domain.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -56,13 +55,12 @@ class ProductControllerIntegrationTest {
         }
 
         // 각 상품별로 서로 다른 판매 수량 설정 (10개, 9개, ..., 1개)
-        List<OrderItemCommand> itemCommands = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            itemCommands.add(new OrderItemCommand(products.get(i).getId(), 10 - i, products.get(i).getPrice()));
+        Order order = new Order(1L);
+        for (int i = 0; i < products.size(); i++) {
+            Product p = products.get(i);
+            int qty = 10 - i;
+            order.addLine(p.getId(), qty, p.getPrice());
         }
-
-        CreateOrderCommand command = new CreateOrderCommand(1L, itemCommands);
-        Order order = Order.create(command.getUserId(), command.getOrderItemCommands());
 
         orderRepository.saveAndFlush(order);
         orderItemRepository.saveAll(order.getItems());
