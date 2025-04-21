@@ -25,10 +25,8 @@ public class OrderController {
 
         OrderCommand.Create command = new OrderCommand.Create(request.getUserId(), items);
 
-        // Facade 호출
         OrderResult.Create result = orderFacade.processOrder(command);
 
-        // Result → Web
         OrderResponse response = OrderResponse.from(result);
         return ResponseEntity.ok(response);
     }

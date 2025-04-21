@@ -67,7 +67,7 @@ class PointHistoryServiceTest {
                 history.getUserId() == userId &&
                         history.getAmount() == amount &&
                         history.getType() == PointHistoryType.REFUND &&
-                        orderId.equals(history.getRelatedOrderId())
+                        orderId.equals(history.getOrderId())
         ));
     }
 

@@ -29,9 +29,8 @@ public class PointHistory {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    private Long relatedOrderId;
+    private Long orderId;
 
-    // 정적 팩토리 메서드
     public static PointHistory charge(long userId, long amount) {
         return new PointHistory(userId, amount, PointHistoryType.CHARGE, null);
     }
@@ -40,8 +39,8 @@ public class PointHistory {
         return new PointHistory(userId, amount, PointHistoryType.USE, null);
     }
 
-    public static PointHistory refund(long userId, long amount, long relatedOrderId) {
-        return new PointHistory(userId, amount, PointHistoryType.REFUND, relatedOrderId);
+    public static PointHistory refund(long userId, long amount, long orderId) {
+        return new PointHistory(userId, amount, PointHistoryType.REFUND, orderId);
     }
 
     @Builder(builderMethodName = "testBuilder")
@@ -51,21 +50,20 @@ public class PointHistory {
             long amount,
             PointHistoryType type,
             LocalDateTime createdAt,
-            Long relatedOrderId
+            Long orderId
     ) {
         this.id = id;
         this.userId = userId;
         this.amount = amount;
         this.type = type;
         this.createdAt = createdAt;
-        this.relatedOrderId = relatedOrderId;
+        this.orderId = orderId;
     }
 
-    // 내부 생성자
-    private PointHistory(long userId, long amount, PointHistoryType type, Long relatedOrderId) {
+    private PointHistory(long userId, long amount, PointHistoryType type, Long orderId) {
         this.userId = userId;
         this.amount = amount;
         this.type = type;
-        this.relatedOrderId = relatedOrderId;
+        this.orderId = orderId;
     }
 }

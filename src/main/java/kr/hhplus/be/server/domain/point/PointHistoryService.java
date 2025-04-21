@@ -20,8 +20,12 @@ public class PointHistoryService {
     }
 
     public PointHistory saveRefund(Long userId, long amount, Long orderId) {
+        if (pointHistoryRepository.existsByOrderId(orderId)) {
+            throw new IllegalStateException("이미 환불 처리된 주문입니다.");
+        }
         return save(PointHistory.refund(userId, amount, orderId));
     }
+
     private PointHistory save(PointHistory history) {
         return pointHistoryRepository.save(history);
     }

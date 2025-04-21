@@ -2,8 +2,6 @@ package kr.hhplus.be.server.domain.point;
 
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
-
 import static org.assertj.core.api.Assertions.*;
 
 class PointHistoryTest {
@@ -21,7 +19,7 @@ class PointHistoryTest {
         assertThat(history.getUserId()).isEqualTo(userId);
         assertThat(history.getAmount()).isEqualTo(amount);
         assertThat(history.getType()).isEqualTo(PointHistoryType.CHARGE);
-        assertThat(history.getRelatedOrderId()).isNull();
+        assertThat(history.getOrderId()).isNull();
     }
 
     @Test
@@ -37,7 +35,7 @@ class PointHistoryTest {
         assertThat(history.getUserId()).isEqualTo(userId);
         assertThat(history.getAmount()).isEqualTo(amount);
         assertThat(history.getType()).isEqualTo(PointHistoryType.USE);
-        assertThat(history.getRelatedOrderId()).isNull();
+        assertThat(history.getOrderId()).isNull();
     }
 
     @Test
@@ -54,6 +52,6 @@ class PointHistoryTest {
         assertThat(history.getUserId()).isEqualTo(userId);
         assertThat(history.getAmount()).isEqualTo(amount);
         assertThat(history.getType()).isEqualTo(PointHistoryType.REFUND);
-        assertThat(history.getRelatedOrderId()).isEqualTo(orderId);
+        assertThat(history.getOrderId()).isEqualTo(orderId);
     }
 }

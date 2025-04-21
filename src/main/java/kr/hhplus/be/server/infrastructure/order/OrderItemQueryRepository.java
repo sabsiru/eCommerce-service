@@ -9,6 +9,5 @@ import java.util.List;
 public interface OrderItemQueryRepository {
     List<PopularProductRow> findPopularProducts();
 
-    //사용자의 주문과 주문아이템 조회 (아직 사용은 안함)
     List<OrderItem> findOrderItemsByUserId(Long orderId);
 }

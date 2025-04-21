@@ -14,10 +14,6 @@ public class CouponController {
 
     private final CouponFacade couponFacade;
 
-    /**
-     * 사용자에게 쿠폰 발급 엔드포인트
-     * 예: POST /coupons/issue?userId=100&couponId=500
-     */
     @PostMapping("/{userId}/issue")
     @ResponseStatus(HttpStatus.CREATED)
     public UserCoupon issueCoupon(@PathVariable Long userId,
@@ -25,10 +21,6 @@ public class CouponController {
         return couponFacade.issueCoupon(userId, couponId);
     }
 
-    /**
-     * 쿠폰 단건 조회 엔드포인트
-     * 예: GET /coupons?userId=100&couponId=500
-     */
     @GetMapping
     public Coupon getCoupon(@RequestParam Long couponId) {
         return couponFacade.getCouponOrThrow(couponId);

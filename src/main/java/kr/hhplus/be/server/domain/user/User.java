@@ -16,8 +16,8 @@ import java.time.LocalDateTime;
 @Table(name = "user")
 public class User {
 
-    private static final long MAX_TOTAL_CHARGE = 10_000_000L; // 최대 충전한도 1000만
-    private static final long MAX_SINGLE_CHARGE = 1_000_000L; // 1회 최대 충전한도 100만
+    private static final long MAX_TOTAL_CHARGE = 10_000_000L;
+    private static final long MAX_SINGLE_CHARGE = 1_000_000L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +33,6 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    // 테스트 용도로 id도 주입하고 싶으면 아래처럼 오버로드
     @Builder
     public User(Long id, String name, int point, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
@@ -50,7 +49,6 @@ public class User {
                 .build();
     }
 
-    // 포인트 충전
     public void chargePoint(long amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("충전 금액은 0보다 커야 합니다.");
@@ -64,7 +62,6 @@ public class User {
         this.point += amount;
     }
 
-    // 포인트 사용
     public void usePoint(long amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("사용 금액은 0보다 커야 합니다.");
@@ -75,7 +72,6 @@ public class User {
         this.point -= amount;
     }
 
-    // 포인트 환불
     public void refundPoint(long amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("환불 금액은 0보다 커야 합니다.");

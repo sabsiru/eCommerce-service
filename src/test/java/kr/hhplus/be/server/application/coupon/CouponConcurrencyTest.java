@@ -94,6 +94,6 @@ class CouponConcurrencyTest {
         executorService.awaitTermination(1, TimeUnit.SECONDS);
         // then
         List<UserCoupon> results = userCouponRepository.findAllByUserId(user.getId());
-        assertThat(results).hasSize(1); // 단 1건만 발급되어야 함
+        assertThat(results).hasSize(1);
     }
 }

@@ -22,9 +22,6 @@ class ProductFacadeTest {
     @Mock
     private PopularProductService popularProductService;
 
-    @Mock
-    private ProductService productService; // 필요 시만 사용
-
     @Test
     void 인기_상품_조회_성공() {
         // given

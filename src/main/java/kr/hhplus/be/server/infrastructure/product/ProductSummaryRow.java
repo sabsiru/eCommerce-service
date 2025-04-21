@@ -11,5 +11,4 @@ public class ProductSummaryRow {
     private Long id;
     private String name;
     private int price;
-    //private LocalDateTime createAt; //cursor에서 쓰임
 }

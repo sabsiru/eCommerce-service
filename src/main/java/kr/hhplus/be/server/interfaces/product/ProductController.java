@@ -22,21 +22,7 @@ import java.util.List;
 @RequestMapping("/products")
 public class ProductController {
     private final ProductFacade productFacade;
-/**
- * 성능 테스트용 페이징으로 리팩토링후 폐기 기록용 주석
- * */
 
-//    @GetMapping
-//    public Page<ProductResponse> getProducts( @RequestParam(defaultValue = "0") int page,
-//                                              @RequestParam(defaultValue = "20") int size) {
-//        Pageable pageable = PageRequest.of(page, size);
-//        return productFacade.getProducts(pageable)
-//                .map(ProductResponse::from);
-//    }
-
-    /**
-     * 최신 등록순 상품 조회 (성능 테스트용)
-     */
     @GetMapping("/latest")
     public List<ProductSummaryRow> getLatestProducts(
             @RequestParam(defaultValue = "0") int offset,

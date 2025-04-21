@@ -60,17 +60,19 @@ class UserPointConcurrencyTest {
 
         // then
         assertThat(updated.getPoint()).isBetween(0, 1000);
-        assertThat(histories.size()).isLessThanOrEqualTo(5); // 1000 / 200
+        assertThat(histories.size()).isLessThanOrEqualTo(5);
 
     }
 
     @Test
     void 동시_포인트_충전_시_최대_보유_한도_초과_검증() throws InterruptedException {
         // given
-        User user = userRepository.save(User.create("유저", 9_000_000)); // 900만 포인트 보유
+        User user = userRepository.save(User.create("유저", 9_000_000));
 
-        int chargeAmount = 500_000; // 1회 충전 금액
-        int threadCount = 5;        // 동시 충전 요청 수
+        int chargeAmount = 500_000;
+        int threadCount = 5;
+        final int max_amount = 10_000_000;
+
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
@@ -79,7 +81,6 @@ class UserPointConcurrencyTest {
                 try {
                     userPointFacade.chargePoint(user.getId(), chargeAmount);
                 } catch (Exception ignored) {
-                    // 한도 초과 예외 무시
                 } finally {
                     latch.countDown();
                 }
@@ -96,8 +97,46 @@ class UserPointConcurrencyTest {
         System.out.println("▶ 최종 포인트: " + updatedUser.getPoint());
         System.out.println("▶ 히스토리 수: " + histories.size());
 
-        assertThat(updatedUser.getPoint()).isLessThanOrEqualTo(10_000_000); // 최대 한도 초과 금지
-        assertThat(histories.size()).isLessThanOrEqualTo(2); // 2건 초과 시 중복 충전 발생
+        assertThat(updatedUser.getPoint()).isLessThanOrEqualTo(max_amount);
+        assertThat(histories.size()).isLessThanOrEqualTo(2);
+    }
+
+    @Test
+    void 동시_포인트_환불_정상_처리_확인() throws InterruptedException {
+        // given
+        User user = userRepository.save(User.create("환불테스트유저", 1000));
+
+        userPointFacade.usePoint(user.getId(), 200);
+
+        int threads = 5;
+        int refundAmount = 200;
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+        CountDownLatch latch = new CountDownLatch(threads);
+
+        // when
+        Long orderId = 1L;
+        for (int i = 0; i < threads; i++) {
+            executor.submit(() -> {
+                try {
+                    userPointFacade.refundPoint(user.getId(), refundAmount, orderId);
+                } catch (Exception ignored) {
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.SECONDS);
+
+        // then
+        User updated = userRepository.findById(user.getId()).orElseThrow();
+        List<PointHistory> histories = pointHistoryRepository.findByUserId(user.getId());
+
+        assertThat(updated.getPoint()).isLessThanOrEqualTo(1000);
+
+        assertThat(histories).hasSizeLessThanOrEqualTo(2);
     }
 
 }

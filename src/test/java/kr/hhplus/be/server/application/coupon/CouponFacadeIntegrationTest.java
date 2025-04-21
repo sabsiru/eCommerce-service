@@ -85,11 +85,11 @@ class CouponFacadeIntegrationTest {
                 Coupon.create("단일발급쿠폰", 10, 5000, LocalDateTime.now().plusDays(1), 1)
         );
 
-        // when: 첫 번째 유저 정상 발급
+        // when
         UserCoupon issuedCoupon = couponFacade.issueCoupon(user1.getId(), coupon.getId());
         assertThat(issuedCoupon.getUserId()).isEqualTo(user1.getId());
 
-        // then: 두 번째 유저 발급 시도 → 예외 발생
+        // then
         IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
                 couponFacade.issueCoupon(user2.getId(), coupon.getId())
         );

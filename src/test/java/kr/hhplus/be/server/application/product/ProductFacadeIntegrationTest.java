@@ -68,7 +68,7 @@ class ProductFacadeIntegrationTest {
         // when
         List<PopularProductInfo> result = productFacade.getPopularProducts();
 
-        // then: 수량 기준으로 내림차순 정렬되어 있어야 함 (Top 5)
+        // then
         assertThat(result).hasSize(5);
         assertThat(result.get(0).getProductId()).isEqualTo(p4.getId()); // 9개
         assertThat(result.get(1).getProductId()).isEqualTo(p3.getId()); // 7개

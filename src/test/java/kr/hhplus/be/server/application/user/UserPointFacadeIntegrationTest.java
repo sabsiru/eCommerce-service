@@ -171,10 +171,10 @@ class UserPointFacadeIntegrationTest {
 
         // then
         User found = userRepository.findById(user.getId()).orElseThrow();
-        assertThat(found.getPoint()).isEqualTo(1000);  // 롤백 확인
+        assertThat(found.getPoint()).isEqualTo(1000);
 
         List<PointHistory> histories = pointHistoryRepository.findByUserId(user.getId());
-        assertThat(histories).isEmpty();  // 저장 안 되어야 함
+        assertThat(histories).isEmpty();
     }
 
     @Test
@@ -189,7 +189,7 @@ class UserPointFacadeIntegrationTest {
 
         // then
         List<PointHistory> histories = pointHistoryRepository.findByUserId(user.getId());
-        assertThat(histories).isEmpty(); // ✅ 롤백 확인
+        assertThat(histories).isEmpty();
     }
 
     @Test
@@ -204,9 +204,9 @@ class UserPointFacadeIntegrationTest {
 
         // then
         User found = userRepository.findById(user.getId()).orElseThrow();
-        assertThat(found.getPoint()).isEqualTo(500); // ✅ 포인트 변경 없음
+        assertThat(found.getPoint()).isEqualTo(500);
 
         List<PointHistory> histories = pointHistoryRepository.findByUserId(user.getId());
-        assertThat(histories).isEmpty(); // ✅ 기록도 없음
+        assertThat(histories).isEmpty();
     }
 }

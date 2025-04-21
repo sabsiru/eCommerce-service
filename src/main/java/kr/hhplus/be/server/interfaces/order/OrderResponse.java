@@ -10,9 +10,6 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * HTTP Response 반환용 DTO — Jackson 직렬화 위해 no-args 필요
- */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor

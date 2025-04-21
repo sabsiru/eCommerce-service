@@ -50,12 +50,8 @@ public class OrderItem {
         this.productId = productId;
         this.quantity = quantity;
         this.orderPrice = orderPrice;
-        // createdAt는 Hibernate가 자동 채워줌
     }
 
-    /**
-     * 도메인에서 사용하기 위한 팩토리 메서드
-     */
     public static OrderItem of(Order order, Long productId, int quantity, int orderPrice) {
         return new OrderItem(order, productId, quantity, orderPrice);
     }

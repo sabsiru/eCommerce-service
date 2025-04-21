@@ -37,16 +37,12 @@ public class Order {
     @Transient
     private List<OrderItem> items = new ArrayList<>();
 
-    /** 최소 필드만 초기화 **/
     public Order(Long userId) {
         this.userId = userId;
         this.status = OrderStatus.PENDING;
         this.totalAmount = 0;
     }
 
-    /**
-     * 주문 항목 추가 — OrderItem 생성, 연관관계 설정, 금액 합산
-     */
     public void addLine(Long productId, int quantity, int orderPrice) {
         if (productId == null)      throw new IllegalArgumentException("상품 정보가 잘못 입력되었습니다.");
         if (quantity <= 0)          throw new IllegalArgumentException("수량은 0보다 커야 합니다.");
@@ -57,7 +53,6 @@ public class Order {
         this.totalAmount += item.totalPrice();
     }
 
-    /** 결제 처리 **/
     public void pay() {
         if (this.status != OrderStatus.PENDING) {
             throw new IllegalStateException("결제는 PENDING 상태의 주문에만 가능합니다.");
@@ -65,7 +60,6 @@ public class Order {
         this.status = OrderStatus.PAID;
     }
 
-    /** 주문 취소 **/
     public void cancel() {
         if (this.status != OrderStatus.PENDING) {
             throw new IllegalStateException("이미 결제 완료된 주문은 취소할 수 없습니다.");
@@ -73,16 +67,12 @@ public class Order {
         this.status = OrderStatus.CANCEL;
     }
 
-    /** 총액 재계산 (주로 테스트나 복구용) **/
     public int calculateTotalAmount() {
         return this.items.stream()
                 .mapToInt(OrderItem::totalPrice)
                 .sum();
     }
 
-    /**
-     * 항목 전체 교체 (연관관계 재설정 및 금액 재계산)
-     */
     public void updateItems(List<OrderItem> newItems) {
         this.items.clear();
         this.items.addAll(newItems);

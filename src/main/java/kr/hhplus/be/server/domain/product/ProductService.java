@@ -11,26 +11,22 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    // 상품 조회: 존재하지 않으면 예외 발생
     public Product getProductOrThrow(long productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다. productId=" + productId));
     }
 
-    // 모든 상품 조회
     public Page<Product> getProducts(Pageable pageable) {
         return productRepository.findAll(pageable);
     }
 
-    // 재고 차감
     public Product decreaseStock(long productId, int decreaseQuantity) {
         Product product = getProductOrThrow(productId);
-        product.decreaseStock(decreaseQuantity);  // 내부 상태 변경
+        product.decreaseStock(decreaseQuantity);
 
-        return productRepository.save(product);   // 변경 감지 or 명시적 저장
+        return productRepository.save(product);
     }
 
-    // 재고 증가
     public Product increaseStock(long productId, int increaseQuantity) {
         Product product = getProductOrThrow(productId);
         product.increaseStock(increaseQuantity);
@@ -38,10 +34,9 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    // 현재 재고 조회
     public int getStock(Long productId) {
         Product product = getProductOrThrow(productId);
-        return product.getStock();  // getter 사용
+        return product.getStock();
     }
 
     public void checkStock(long productId, int requiredQuantity) {

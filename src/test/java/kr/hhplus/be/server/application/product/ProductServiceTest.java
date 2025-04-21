@@ -34,7 +34,7 @@ class ProductServiceTest {
         // given
         Long productId = 1L;
         int expectedStock = 50;
-        // Product 도메인: price와 stock은 int, id 및 categoryId는 long
+
         Product product = new Product(productId, "Test Product", 10000, expectedStock, 1L, LocalDateTime.now(), LocalDateTime.now());
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
@@ -97,7 +97,7 @@ class ProductServiceTest {
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
-        // findAllById 메서드 사용 (코드에 맞춰 작성)
+
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
         Product found = productService.getProductOrThrow(productId);
@@ -144,18 +144,15 @@ class ProductServiceTest {
         int purchaseQuantity = 10;
         int expectedStock = initialStock - purchaseQuantity;
 
-        // 초기 Product 도메인: 재고가 50
         Product product = new Product(productId, "Test Product", 10_000, initialStock, 1L, LocalDateTime.now(), LocalDateTime.now());
 
-        // productRepository.findById(productId) 가 product를 반환
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
-        // productRepository.save(updatedProduct)를 호출하면 updatedProduct 반환
         when(productRepository.save(any(Product.class))).thenReturn(product);
 
         // when
         Product result = productService.decreaseStock(productId, purchaseQuantity);
 
-        // then: 재고(stock)가 purchaseQuantity 만큼 차감되어야 함
+        // then
         assertEquals(expectedStock, result.getStock());
         verify(productRepository, times(1)).findById(productId);
         verify(productRepository, times(1)).save(any(Product.class));
@@ -169,7 +166,6 @@ class ProductServiceTest {
         int restockQuantity = 20;
         int expectedStock = initialStock + restockQuantity;
 
-        // 초기 Product 도메인: 재고가 50
         Product product = new Product(productId, "Test Product", 10_000, initialStock, 1L, LocalDateTime.now(), LocalDateTime.now());
 
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
@@ -178,7 +174,7 @@ class ProductServiceTest {
         // when
         Product result = productService.increaseStock(productId, restockQuantity);
 
-        // then: 재고(stock)가 restockQuantity 만큼 증가되어야 함
+        // then
         assertEquals(expectedStock, result.getStock());
         verify(productRepository, times(1)).findById(productId);
         verify(productRepository, times(1)).save(any(Product.class));
@@ -188,10 +184,9 @@ class ProductServiceTest {
     void 재고_차감_재고_부족_예외_테스트() {
         // given
         Long productId = 1L;
-        int initialStock = 5;     // 재고가 부족한 상황 (예: 5)
-        int purchaseQuantity = 10; // 구매하려는 수량 (예: 10)
+        int initialStock = 5;
+        int purchaseQuantity = 10;
 
-        // 초기 Product 도메인: 재고가 5
         Product product = new Product(
                 productId,
                 "Test Product",
@@ -202,7 +197,6 @@ class ProductServiceTest {
                 LocalDateTime.now()
         );
 
-        // findById가 상품을 반환하도록 stub 설정
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
         // when & then
@@ -210,7 +204,6 @@ class ProductServiceTest {
                 () -> productService.decreaseStock(productId, purchaseQuantity));
         assertEquals("재고가 부족합니다.", e.getMessage());
 
-        // 예외 발생 시 save는 호출되지 않아야 합니다.
         verify(productRepository, never()).save(any(Product.class));
     }
 

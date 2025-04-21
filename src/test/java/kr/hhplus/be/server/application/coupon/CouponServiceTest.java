@@ -172,7 +172,6 @@ class CouponServiceTest {
         Long couponId = 1L;
         LocalDateTime now = LocalDateTime.now();
 
-        // 기존 Coupon 엔티티 세팅 (limitCount=5, issuedCount=3)
         Coupon originalCoupon = Coupon.builder()
                 .id(couponId)
                 .name("10% 할인")
@@ -185,13 +184,10 @@ class CouponServiceTest {
                 .issuedCount(3)
                 .build();
 
-        // Coupon 도메인에서 increaseIssuedCount() 호출 시 반환할 값
         Coupon updatedCoupon = originalCoupon.increaseIssuedCount();
 
-        // 발급 후 저장될 UserCoupon
         UserCoupon issuedUserCoupon = UserCoupon.issue(userId, couponId);
 
-        // stub
         when(userCouponRepository.findByUserIdAndCouponId(userId, couponId))
                 .thenReturn(Optional.empty());
         when(couponRepository.findById(couponId))
