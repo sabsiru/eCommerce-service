@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +52,8 @@ class UserPointConcurrencyTest {
         }
 
         latch.await();
-
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.SECONDS);
         // when
         User updated = userRepository.findById(user.getId()).orElseThrow();
         List<PointHistory> histories = pointHistoryRepository.findByUserId(user.getId());
@@ -85,7 +87,8 @@ class UserPointConcurrencyTest {
         }
 
         latch.await();
-
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.SECONDS);
         // then
         User updatedUser = userRepository.findById(user.getId()).orElseThrow();
         List<PointHistory> histories = pointHistoryRepository.findByUserId(user.getId());

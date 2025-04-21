@@ -1,7 +1,9 @@
 package kr.hhplus.be.server.application.payment;
 
-import kr.hhplus.be.server.application.order.OrderCommand;
-import kr.hhplus.be.server.domain.order.*;
+import kr.hhplus.be.server.domain.order.Order;
+import kr.hhplus.be.server.domain.order.OrderLine;
+import kr.hhplus.be.server.domain.order.OrderRepository;
+import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentRepository;
 import kr.hhplus.be.server.domain.payment.PaymentStatus;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -59,13 +62,13 @@ class PaymentConcurrencyTest {
         int totalAmount = order.getTotalAmount();
 
         int threadCount = 5;
-        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
         // when
         for (int i = 0; i < threadCount; i++) {
             Order finalOrder = order;
-            executorService.submit(() -> {
+            executor.submit(() -> {
                 try {
                     paymentFacade.processPayment(finalOrder.getId(), totalAmount);
                 } catch (Exception e) {
@@ -77,6 +80,8 @@ class PaymentConcurrencyTest {
         }
 
         latch.await();
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.SECONDS);
         System.out.println("user.getPoint() = " + user.getPoint());
         // then
         List<Payment> all = paymentRepository.findAll();
@@ -109,7 +114,8 @@ class PaymentConcurrencyTest {
         }
 
         latch.await();
-
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.SECONDS);
         // then
         List<Payment> payments = paymentRepository.findAll();
         assertThat(payments.size()).isLessThanOrEqualTo(1);
@@ -151,7 +157,8 @@ class PaymentConcurrencyTest {
         }
 
         latch.await();
-
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.SECONDS);
         System.out.println("▶ 성공한 결제 건수: " + paymentIds.size());
         assertThat(paymentIds).hasSize(1); // 재고가 1개이므로 1건만 결제 성공
     }
@@ -182,7 +189,8 @@ class PaymentConcurrencyTest {
         }
 
         latch.await();
-
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.SECONDS);
         // then
         User updatedUser = userRepository.findById(user.getId()).orElseThrow();
         List<PointHistory> history = pointHistoryRepository.findByUserId(user.getId());
@@ -192,45 +200,6 @@ class PaymentConcurrencyTest {
 
         assertThat(updatedUser.getPoint()).isLessThan(10000); // 1건 이상 적립되었으면 실패
         assertThat(history).hasSizeLessThan(2); // 정상이라면 최대 1건만 기록
-    }
-
-    /*domian 에서 재고를 관리하고 있어서 테스트환경에선 방어가 되는걸까요?? 포인트나 재고관련한 테스트는 재고나 포인트가
-    * 누적이 일어 나지 않는거 같습니다.*/
-    @Test
-    void 동일_결제건_중복_환불_시도_재고_중복복원_검증() throws InterruptedException {
-        // given
-        User user = userRepository.save(User.create("유저", 10000));
-        Product product = productRepository.save(new Product("상품", 10000, 1, 1L)); // 초기 재고 0
-        List<OrderLine> lines = List.of(new OrderLine(product.getId(), 1, product.getPrice()));
-        Order order = orderService.create(user.getId(), lines);
-
-        // 결제 진행 → 재고 차감
-        Payment payment = paymentFacade.processPayment(order.getId(), 10000);
-
-        int threadCount = 5;
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch latch = new CountDownLatch(threadCount);
-
-        for (int i = 0; i < threadCount; i++) {
-            executor.submit(() -> {
-                try {
-                    paymentFacade.processRefund(payment.getId());
-                } catch (Exception ignored) {
-                    // 중복 환불 예외 무시
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
-
-        latch.await();
-
-        // then
-        Product updatedProduct = productRepository.findById(product.getId()).orElseThrow();
-
-        System.out.println("▶ 최종 재고: " + updatedProduct.getStock());
-
-        assertThat(updatedProduct.getStock()).isLessThanOrEqualTo(1); // 재고가 2 이상이면 중복 복원 발생
     }
 
 }

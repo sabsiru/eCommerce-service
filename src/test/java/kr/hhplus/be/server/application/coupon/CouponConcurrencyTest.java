@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -58,7 +59,8 @@ class CouponConcurrencyTest {
         }
 
         latch.await();
-
+        executorService.shutdown();
+        executorService.awaitTermination(1, TimeUnit.SECONDS);
         // then
         List<UserCoupon> allCoupons = userCouponRepository.findAll();
         assertThat(allCoupons).hasSize(1); // 최대 1개까지만 발급돼야 함
@@ -72,12 +74,12 @@ class CouponConcurrencyTest {
                 LocalDateTime.now().plusDays(1), 10)); // 충분한 수량
 
         int threadCount = 10;
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
         // when
         for (int i = 0; i < threadCount; i++) {
-            executor.submit(() -> {
+            executorService.submit(() -> {
                 try {
                     couponFacade.issueCoupon(user.getId(), coupon.getId());
                 } catch (Exception ignored) {
@@ -88,7 +90,8 @@ class CouponConcurrencyTest {
         }
 
         latch.await();
-
+        executorService.shutdown();
+        executorService.awaitTermination(1, TimeUnit.SECONDS);
         // then
         List<UserCoupon> results = userCouponRepository.findAllByUserId(user.getId());
         assertThat(results).hasSize(1); // 단 1건만 발급되어야 함
