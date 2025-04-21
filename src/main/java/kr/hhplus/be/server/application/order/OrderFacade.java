@@ -4,11 +4,11 @@ import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.order.*;
 import kr.hhplus.be.server.domain.product.ProductService;
 import kr.hhplus.be.server.domain.user.UserPointService;
-import kr.hhplus.be.server.interfaces.order.OrderResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -22,35 +22,70 @@ public class OrderFacade {
     /**
      * 주문 생성 및 재고 차감 처리
      */
-    public OrderResponse processOrder(CreateOrderCommand command) {
+    public OrderResult.Create processOrder(OrderCommand.Create command) {
         userPointService.getUserOrThrow(command.getUserId());
         // 1. 재고 확인 먼저
-        for (OrderItemCommand item : command.getOrderItemCommands()) {
+        for (OrderCommand.Item item : command.getItems()) {
             productService.checkStock(item.getProductId(), item.getQuantity());
         }
 
         // 2. 주문 도메인에서 order + item 생성 (연관관계도 도메인 내부에서 구성)
-        Order order = Order.create(command.getUserId(), command.getOrderItemCommands());
+        List<OrderLine> lines = command.getItems().stream()
+                .map(i -> new OrderLine(i.getProductId(), i.getQuantity(), i.getItemPrice()))
+                .collect(Collectors.toList());
 
         // 3. 저장
-        Order saved = orderService.save(order);
+        Order saved = orderService.create(command.getUserId(), lines);
 
         // 4. 응답 변환
-        List<OrderItem> items = order.getItems();
-        return OrderResponse.from(saved, items);
+        List<OrderResult.Item> resultItems = saved.getItems().stream()
+                .map(i -> new OrderResult.Item(i.getProductId(), i.getQuantity(), i.getOrderPrice()))
+                .collect(Collectors.toList());
+
+        return new OrderResult.Create(
+                saved.getId(),
+                saved.getUserId(),
+                resultItems,
+                saved.getTotalAmount(),
+                saved.getStatus()
+        );
     }
 
-    public Order cancelOrder(Long orderId) {
-        Order cancelledOrder = orderService.cancel(orderId);
+    // OrderFacade.java
+    public OrderResult.Create cancelOrder(Long orderId) {
+        Order canceled = orderService.cancel(orderId);
 
-        return cancelledOrder;
+        List<OrderResult.Item> items = OrderMapper.toResultItems(canceled.getItems());
+
+        int totalAmount = items.stream()
+                .mapToInt(i -> i.getQuantity() * i.getItemPrice())
+                .sum();
+
+        return new OrderResult.Create(
+                canceled.getId(),
+                canceled.getUserId(),
+                items,
+                totalAmount,
+                canceled.getStatus()
+        );
     }
 
-    public List<Order> getOrdersByUser(Long userId) {
-        return orderService.getOrdersByUser(userId);
+    public List<OrderResult.Create> getOrdersByUser(Long userId) {
+        List<Order> orders = orderService.getOrdersByUser(userId);
+        return orders.stream()
+                .map(order -> {
+                    List<OrderResult.Item> items = order.getItems().stream()
+                            .map(i -> new OrderResult.Item(i.getProductId(), i.getQuantity(), i.getOrderPrice()))
+                            .collect(Collectors.toList());
+                    return new OrderResult.Create(
+                            order.getId(),
+                            order.getUserId(),
+                            items,
+                            order.getTotalAmount(),
+                            order.getStatus()
+                    );
+                })
+                .collect(Collectors.toList());
     }
 
-    public List<OrderItem> getOrderItems(Long orderId) {
-        return orderService.getOrderItems(orderId);
-    }
 }

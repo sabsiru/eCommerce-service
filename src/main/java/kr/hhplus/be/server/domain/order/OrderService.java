@@ -1,10 +1,11 @@
 package kr.hhplus.be.server.domain.order;
 
-import kr.hhplus.be.server.application.order.CreateOrderCommand;
+import kr.hhplus.be.server.application.order.OrderCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
 
 @RequiredArgsConstructor
 @Service
@@ -13,10 +14,15 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
 
-    public Order create(CreateOrderCommand command) {
-        return orderRepository.save(
-                Order.create(command.getUserId(), command.getOrderItemCommands())
-        );
+    public Order create(Long userId, List<OrderLine> lines) {
+        if (lines == null || lines.isEmpty()) {
+            throw new IllegalArgumentException("주문 항목이 비어 있습니다.");
+        }
+        Order order = new Order(userId);
+        for (OrderLine line : lines) {
+            order.addLine(line.getProductId(), line.getQuantity(), line.getOrderPrice());
+        }
+        return save(order);
     }
 
     public Order getOrderOrThrow(Long orderId) {
@@ -31,19 +37,19 @@ public class OrderService {
     public Order pay(Long orderId) {
         Order order = getOrderOrThrow(orderId);
         order.pay();  // 내부 상태 변경
-        return order;
+        return save(order);
     }
 
     public Order cancel(Long orderId) {
         Order order = getOrderOrThrow(orderId);
         order.cancel();  // 내부 상태 변경
-        return order;
+        return save(order);
     }
 
     public Order updateOrderItems(Long orderId, List<OrderItem> newItems) {
         Order order = getOrderOrThrow(orderId);
         order.updateItems(newItems);  // 내부 리스트 갱신 및 총합 재계산
-        return order;
+        return save(order);
     }
 
     public List<Order> getOrdersByUser(Long userId) {

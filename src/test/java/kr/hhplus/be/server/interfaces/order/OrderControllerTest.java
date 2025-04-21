@@ -1,14 +1,11 @@
 package kr.hhplus.be.server.interfaces.order;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.hhplus.be.server.application.order.CreateOrderCommand;
 import kr.hhplus.be.server.application.order.OrderFacade;
-import kr.hhplus.be.server.application.order.OrderItemCommand;
-import kr.hhplus.be.server.domain.product.ProductService;
-import kr.hhplus.be.server.domain.order.Order;
-import kr.hhplus.be.server.domain.order.OrderItem;
+import kr.hhplus.be.server.application.order.OrderResult;
 import kr.hhplus.be.server.domain.order.OrderStatus;
 import kr.hhplus.be.server.domain.product.Product;
+import kr.hhplus.be.server.domain.product.ProductService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,86 +19,77 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(OrderController.class)
-public class OrderControllerTest {
+class OrderControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private ObjectMapper objectMapper;
 
-    @MockitoBean
-    private OrderFacade orderFacade;
-
-    @MockitoBean
-    private ProductService productService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    @MockitoBean private OrderFacade orderFacade;
+    @MockitoBean private ProductService productService;
 
     @Test
     void 주문_생성_성공() throws Exception {
         Long userId = 1L;
-        List<OrderItemCommand> itemRequests = List.of(new OrderItemCommand(101L, 2, 5000));
-        CreateOrderCommand request = new CreateOrderCommand(userId, itemRequests);
+        OrderRequest request = new OrderRequest(userId, List.of(
+                new OrderRequest.Item(101L, 2, 5000)
+        ));
 
-        OrderItemResponse itemResponse = new OrderItemResponse(101L, 2, 5000);
-        OrderResponse orderResponse = new OrderResponse(1L, userId, List.of(itemResponse), 10_000, OrderStatus.PENDING);
+        OrderResult.Item itemResult = new OrderResult.Item(101L, 2, 5000);
+        OrderResult.Create result = new OrderResult.Create(1L, userId, List.of(itemResult), 10000, OrderStatus.PENDING);
 
-        when(orderFacade.processOrder(any(CreateOrderCommand.class))).thenReturn(orderResponse);
+        when(orderFacade.processOrder(any())).thenReturn(result);
 
         mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk()).andDo(print())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.userId").value(userId))
                 .andExpect(jsonPath("$.items[0].productId").value(101L))
                 .andExpect(jsonPath("$.items[0].quantity").value(2))
-                .andExpect(jsonPath("$.items[0].orderPrice").value(5000))
-                .andExpect(jsonPath("$.totalAmount").value(10_000))
+                .andExpect(jsonPath("$.items[0].itemPrice").value(5000))
+                .andExpect(jsonPath("$.totalAmount").value(10000))
                 .andExpect(jsonPath("$.status").value("PENDING"));
     }
 
     @Test
     void 사용자_주문_조회_성공() throws Exception {
         Long userId = 1L;
-        Order order = Order.builder()
-                .id(1L)
-                .userId(userId)
-                .totalAmount(10000)
-                .status(OrderStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .items(List.of(OrderItem.create(mock(Order.class), 101L, 1, 10000)))
-                .build();
-        when(orderFacade.getOrdersByUser(userId)).thenReturn(List.of(order));
+        OrderResult.Create result = new OrderResult.Create(
+                1L,
+                userId,
+                List.of(new OrderResult.Item(101L, 1, 10000)),
+                10000,
+                OrderStatus.PENDING
+        );
+
+        when(orderFacade.getOrdersByUser(userId)).thenReturn(List.of(result));
+
         mockMvc.perform(get("/orders/{userId}", userId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(order.getId()))
-                .andExpect(jsonPath("$[0].userId").value(userId));
+                .andExpect(jsonPath("$[0].id").value(1L))
+                .andExpect(jsonPath("$[0].userId").value(userId))
+                .andExpect(jsonPath("$[0].totalAmount").value(10000));
     }
 
     @Test
     void 주문_취소_성공() throws Exception {
         Long orderId = 1L;
-        Long userId = 1L;
 
-        Order canceledOrder = Order.builder()
-                .id(orderId)
-                .userId(userId)
-                .totalAmount(10000)
-                .status(OrderStatus.CANCEL)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .items(List.of(OrderItem.create(mock(Order.class), 101L, 1, 10000)))
-                .build();
+        OrderResult.Create result = new OrderResult.Create(
+                orderId,
+                1L,
+                List.of(new OrderResult.Item(101L, 1, 10000)),
+                10000,
+                OrderStatus.CANCEL
+        );
 
-        when(orderFacade.cancelOrder(orderId)).thenReturn(canceledOrder);
+        when(orderFacade.cancelOrder(orderId)).thenReturn(result);
 
         mockMvc.perform(patch("/orders/{orderId}/cancel", orderId))
                 .andExpect(status().isOk())
@@ -113,12 +101,13 @@ public class OrderControllerTest {
     @DisplayName("주문 생성 실패 - 상품 재고 부족")
     void 주문_생성_실패_재고부족() throws Exception {
         Long userId = 1L;
-        List<OrderItemCommand> items = List.of(new OrderItemCommand(101L, 100, 5000));
-        CreateOrderCommand request = new CreateOrderCommand(userId, items);
+        OrderRequest request = new OrderRequest(userId, List.of(
+                new OrderRequest.Item(101L, 100, 5000)
+        ));
 
         Product product = new Product(101L, "상품", 10000, 0, 1L, LocalDateTime.now(), LocalDateTime.now());
         when(productService.getProductOrThrow(101L)).thenReturn(product);
-        when(orderFacade.processOrder(any(CreateOrderCommand.class)))
+        when(orderFacade.processOrder(any()))
                 .thenThrow(new IllegalStateException("재고가 부족합니다."));
 
         mockMvc.perform(post("/orders")

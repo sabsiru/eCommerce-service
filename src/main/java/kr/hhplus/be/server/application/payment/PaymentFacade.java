@@ -72,7 +72,7 @@ public class PaymentFacade {
             couponService.refundCoupon(refundPayment.getCouponId());
         }
 
-        List<OrderItem> items = orderService.getOrderItems(order.getId());
+        List<OrderItem> items = orderService.getOrderItems(refundPayment.getOrderId());
         for (OrderItem item : items) {
             productService.increaseStock(item.getProductId(), item.getQuantity());
         }

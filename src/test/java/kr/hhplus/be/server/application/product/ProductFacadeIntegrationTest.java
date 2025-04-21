@@ -1,7 +1,5 @@
 package kr.hhplus.be.server.application.product;
 
-import kr.hhplus.be.server.application.order.CreateOrderCommand;
-import kr.hhplus.be.server.application.order.OrderItemCommand;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderItemRepository;
 import kr.hhplus.be.server.domain.order.OrderRepository;
@@ -58,9 +56,11 @@ class ProductFacadeIntegrationTest {
 
         // 주문 저장
         for (Map.Entry<Product, Integer> entry : orderMap.entrySet()) {
-            OrderItemCommand itemCommand = new OrderItemCommand(entry.getKey().getId(), entry.getValue(), entry.getKey().getPrice());
-            CreateOrderCommand command = new CreateOrderCommand(userId, List.of(itemCommand));
-            Order order = Order.create(userId,command.getOrderItemCommands());
+            Product product = entry.getKey();
+            int quantity = entry.getValue();
+
+            Order order = new Order(userId);
+            order.addLine(product.getId(), quantity, product.getPrice());
             orderRepository.save(order);
             orderItemRepository.saveAll(order.getItems());
         }
