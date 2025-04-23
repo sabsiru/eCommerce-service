@@ -2,6 +2,8 @@
 
 ## 1.[데이터베이스 락 개념 정리](docs/concurrency/db-lock.md)
 
+## 2.[유저 포인트 동시성 제어 보고서](docs/concurrency/point-concurrency.md)
+
 ---
 <details>
 <summary>4주 차</summary>
