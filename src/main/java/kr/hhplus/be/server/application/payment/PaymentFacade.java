@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.application.payment;
 
-import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.product.ProductService;
@@ -13,6 +12,7 @@ import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class PaymentFacade {
     private final ProductService productService;
 
     public Payment processPayment(Long orderId, int paymentAmount) {
-        Order order = orderService.getOrderOrThrow(orderId);
+        Order order = orderService.getOrderOrThrowPaid(orderId);
 
         List<OrderItem> items = orderService.getOrderItems(orderId);
         for (OrderItem item : items) {
@@ -63,7 +63,7 @@ public class PaymentFacade {
     public Payment processRefund(Long paymentId) {
         Payment refundPayment = paymentService.refundPayment(paymentId);
 
-        Order order = orderService.getOrderOrThrow(refundPayment.getOrderId());
+        Order order = orderService.getOrderOrThrowCancel(refundPayment.getOrderId());
 
 
         userPointFacade.refundPoint(order.getUserId(), refundPayment.getAmount(), order.getId());
@@ -82,7 +82,7 @@ public class PaymentFacade {
 
     public int calculateDiscount(Long couponId, long orderId) {
         Coupon coupon = couponService.getCouponOrThrow(couponId);
-        Order order = orderService.getOrderOrThrow(orderId);
+        Order order = orderService.getOrderOrThrowPaid(orderId);
         return coupon.calculateDiscountAmount(order.getTotalAmount());
     }
 }

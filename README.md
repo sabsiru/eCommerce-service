@@ -6,6 +6,8 @@
 
 ## 3.[쿠폰 발급 동시성 제어 보고서](docs/concurrency/coupon-concurrency.md)
 
+## 4.[결제 시 재고 차감, 환불 시 재고 증가 동시성 제어 보고서](docs/concurrency/order-payment-product-concurrency.md)
+
 ---
 <details>
 <summary>4주 차</summary>
