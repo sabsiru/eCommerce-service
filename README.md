@@ -4,6 +4,8 @@
 
 ## 2.[유저 포인트 동시성 제어 보고서](docs/concurrency/point-concurrency.md)
 
+## 3.[쿠폰 발급 동시성 제어 보고서](docs/concurrency/coupon-concurrency.md)
+
 ---
 <details>
 <summary>4주 차</summary>
