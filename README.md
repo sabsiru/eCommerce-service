@@ -1,12 +1,21 @@
-#  조회 성능 개선 보고서
+# 동시성 제어
+
+## 1.[데이터베이스 락 개념 정리](docs/concurrency/db-lock.md)
+
+---
+<details>
+<summary>4주 차</summary>
+
+##  조회 성능 개선 보고서
 
 ## 1. [인기상품조회](docs/performance/popular-product/popular-product.md)
 
 ## 2. [전체상품조회(페이징)](docs/performance/get-product-paging/get-product-paging.md)
 
+</details>
 ---
 <details>
-<summary>1~3주차</summary>
+<summary>1~3주 차</summary>
 
 
 # 0. 마일스톤
