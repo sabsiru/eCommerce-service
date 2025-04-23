@@ -40,18 +40,18 @@ class CouponServiceTest {
                 .issuedCount(0)
                 .build();
 
-        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.findByIdForUpdate(couponId)).thenReturn(Optional.of(coupon));
 
         Coupon result = couponService.getCouponOrThrow(couponId);
 
         assertEquals(coupon, result);
-        verify(couponRepository).findById(couponId);
+        verify(couponRepository).findByIdForUpdate(couponId);
     }
 
     @Test
     void 쿠폰_단건조회_실패() {
         Long couponId = 999L;
-        when(couponRepository.findById(couponId)).thenReturn(Optional.empty());
+        when(couponRepository.findByIdForUpdate(couponId)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
                 () -> couponService.getCouponOrThrow(couponId));
@@ -76,9 +76,8 @@ class CouponServiceTest {
         Coupon updated = coupon.increaseIssuedCount();
         UserCoupon issued = UserCoupon.issue(userId, couponId);
 
-        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.findByIdForUpdate(couponId)).thenReturn(Optional.of(coupon));
         when(couponRepository.save(any())).thenReturn(updated);
-        when(userCouponRepository.findByUserIdAndCouponId(userId, couponId)).thenReturn(Optional.empty());
         when(userCouponRepository.save(any())).thenReturn(issued);
 
         UserCoupon result = couponService.issueCoupon(userId, couponId);
@@ -107,7 +106,7 @@ class CouponServiceTest {
                 .issuedCount(10)
                 .build();
 
-        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.findByIdForUpdate(couponId)).thenReturn(Optional.of(coupon));
 
         assertThrows(IllegalStateException.class, () -> couponService.issueCoupon(userId,couponId));
     }
@@ -128,13 +127,12 @@ class CouponServiceTest {
                 .issuedCount(5)
                 .build();
 
-        when(couponRepository.findById(couponId)).thenReturn(Optional.of(expiredCoupon));
+        when(couponRepository.findByIdForUpdate(couponId)).thenReturn(Optional.of(expiredCoupon));
 
         assertThrows(IllegalArgumentException.class, () -> couponService.issueCoupon(userId,couponId));
     }
 
     @Test
-    @DisplayName("쿠폰 발급 수량이 한도에 도달할 때 - 상태 자동 EXPIRED 전환")
     void 쿠폰_발급_경계값_도달_상태_변경() {
         Long userId = 1L;
         Long couponId = 1L;
@@ -153,8 +151,7 @@ class CouponServiceTest {
         Coupon updatedCoupon = originalCoupon.increaseIssuedCount();
         UserCoupon issued = UserCoupon.issue(userId, couponId);
 
-        when(userCouponRepository.findByUserIdAndCouponId(userId, couponId)).thenReturn(Optional.empty());
-        when(couponRepository.findById(1L)).thenReturn(Optional.of(originalCoupon));
+        when(couponRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(originalCoupon));
         when(couponRepository.save(any(Coupon.class))).thenReturn(updatedCoupon);
         when(userCouponRepository.save(any())).thenReturn(issued);
 
@@ -165,7 +162,6 @@ class CouponServiceTest {
     }
 
     @Test
-    @DisplayName("쿠폰 발급 한도 직전 상태 유지")
     void 쿠폰_발급_한도_직전_상태_유지() {
         // given
         Long userId = 1L;
@@ -188,9 +184,7 @@ class CouponServiceTest {
 
         UserCoupon issuedUserCoupon = UserCoupon.issue(userId, couponId);
 
-        when(userCouponRepository.findByUserIdAndCouponId(userId, couponId))
-                .thenReturn(Optional.empty());
-        when(couponRepository.findById(couponId))
+        when(couponRepository.findByIdForUpdate(couponId))
                 .thenReturn(Optional.of(originalCoupon));
         when(couponRepository.save(any(Coupon.class)))
                 .thenReturn(updatedCoupon);
@@ -206,9 +200,8 @@ class CouponServiceTest {
         assertEquals(couponId, result.getCouponId());
         assertEquals(UserCouponStatus.ISSUED, result.getStatus());
 
-        verify(couponRepository).findById(couponId);
+        verify(couponRepository).findByIdForUpdate(couponId);
         verify(couponRepository).save(any(Coupon.class));
-        verify(userCouponRepository).findByUserIdAndCouponId(userId, couponId);
         verify(userCouponRepository).save(any(UserCoupon.class));
     }
 }
