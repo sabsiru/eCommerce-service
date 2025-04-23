@@ -28,7 +28,7 @@ public class UserPointControllerTest {
 
     @Test
     void 정상_충전() throws Exception {
-        // given: ChargePointRequest 데이터와 Stub 처리할 결과 User 객체 생성
+        // given: UserPointRequest 데이터와 Stub 처리할 결과 User 객체 생성
         Long userId = 1L;
         int chargeAmount = 5000;
         // User 객체: id, name, point, createdAt, updatedAt

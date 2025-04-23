@@ -35,7 +35,7 @@ class UserPointControllerIntegrationTest {
         // given: 유저 등록
         User user = userRepository.save(User.create("테스트유저", 0));
 
-        ChargePointRequest request = new ChargePointRequest(user.getId(), 5000);
+        UserPointRequest request = new UserPointRequest(user.getId(), 5000);
 
         // when & then
         mockMvc.perform(post("/point/{userId}/charge", user.getId())
@@ -50,7 +50,7 @@ class UserPointControllerIntegrationTest {
     @Test
     void 포인트_충전_실패_음수요청() throws Exception {
         User user = userRepository.save(User.create("에러유저", 0));
-        ChargePointRequest request = new ChargePointRequest(user.getId(), -1000);
+        UserPointRequest request = new UserPointRequest(user.getId(), -1000);
 
         mockMvc.perform(post("/point/{userId}/charge", user.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -62,7 +62,7 @@ class UserPointControllerIntegrationTest {
     @Test
     void 보유포인트_최대한도_초과_예외() throws Exception {
         User user = userRepository.save(User.create("최대한도유저", 9_999_999));
-        ChargePointRequest request = new ChargePointRequest(user.getId(), 10_000);  // 총합 1000만 초과
+        UserPointRequest request = new UserPointRequest(user.getId(), 10_000);  // 총합 1000만 초과
 
         mockMvc.perform(post("/point/{userId}/charge", user.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -74,7 +74,7 @@ class UserPointControllerIntegrationTest {
     @Test
     void 최대_1회_충전_금액_초과_예외() throws Exception {
         User user = userRepository.save(User.create("1회한도유저", 0));
-        ChargePointRequest request = new ChargePointRequest(user.getId(), 1_000_001);  // 1회 한도 초과
+        UserPointRequest request = new UserPointRequest(user.getId(), 1_000_001);  // 1회 한도 초과
 
         mockMvc.perform(post("/point/{userId}/charge", user.getId())
                         .contentType(MediaType.APPLICATION_JSON)

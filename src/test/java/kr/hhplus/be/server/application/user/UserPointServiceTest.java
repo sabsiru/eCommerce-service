@@ -39,7 +39,7 @@ class UserPointServiceTest {
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdForUpdate(userId)).thenReturn(Optional.of(user));
 
         // when, then
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> {
@@ -59,7 +59,7 @@ class UserPointServiceTest {
         int chargeAmount = 500_001;
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdForUpdate(userId)).thenReturn(Optional.of(user));
         ;
 
         //when
@@ -80,7 +80,7 @@ class UserPointServiceTest {
         int chargeAmount = 1_000_001;
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdForUpdate(userId)).thenReturn(Optional.of(user));
         ;
 
         //when
@@ -103,14 +103,14 @@ class UserPointServiceTest {
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdForUpdate(userId)).thenReturn(Optional.of(user));
 
         //when
         User updatedUser = userPointService.usePoint(userId, useAmount);  // 포인트 사용
 
         // then
         assertEquals(initialPoint - useAmount, updatedUser.getPoint());  // 포인트가 500_000L이 되어야 함
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findByIdForUpdate(userId);
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -122,7 +122,7 @@ class UserPointServiceTest {
         int useAmount = 0;
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdForUpdate(userId)).thenReturn(Optional.of(user));
         ;
 
         //when
@@ -143,7 +143,7 @@ class UserPointServiceTest {
         int useAmount = 1_000_001;
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdForUpdate(userId)).thenReturn(Optional.of(user));
         ;
 
         //when
@@ -165,7 +165,7 @@ class UserPointServiceTest {
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdForUpdate(userId)).thenReturn(Optional.of(user));
         //when(userRepository.save(any(User.class))).thenReturn(user);
 
         //when
@@ -173,7 +173,7 @@ class UserPointServiceTest {
 
         // then
         assertEquals(initialPoint + refundAmount, updatedUser.getPoint());  // 포인트가 2_000_000L이 되어야 함
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findByIdForUpdate(userId);
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -185,7 +185,7 @@ class UserPointServiceTest {
         int refundAmount = 0;
 
         User user = new User(userId, "tester", initialPoint, LocalDateTime.now(), LocalDateTime.now());
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdForUpdate(userId)).thenReturn(Optional.of(user));
         ;
 
         //when
@@ -205,14 +205,14 @@ class UserPointServiceTest {
         long userId = 1L;
         int chargeAmount = 5000;
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findByIdForUpdate(userId)).thenReturn(Optional.empty());
 
         // when & then
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> userPointService.chargePoint(userId, chargeAmount));
 
         assertEquals("유저를 찾을수 없습니다.", e.getMessage());
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findByIdForUpdate(userId);
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -222,14 +222,14 @@ class UserPointServiceTest {
         long userId = 1L;
         int chargeAmount = 5000;
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findByIdForUpdate(userId)).thenReturn(Optional.empty());
 
         // when & then
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> userPointService.usePoint(userId, chargeAmount));
 
         assertEquals("유저를 찾을수 없습니다.", e.getMessage());
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findByIdForUpdate(userId);
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -239,14 +239,14 @@ class UserPointServiceTest {
         long userId = 1L;
         int chargeAmount = 5000;
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findByIdForUpdate(userId)).thenReturn(Optional.empty());
 
         // when & then
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> userPointService.refundPoint(userId, chargeAmount));
 
         assertEquals("유저를 찾을수 없습니다.", e.getMessage());
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findByIdForUpdate(userId);
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -255,14 +255,14 @@ class UserPointServiceTest {
         // given
         long userId = 1L;
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findByIdForUpdate(userId)).thenReturn(Optional.empty());
 
         // when & then
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> userPointService.getPoint(userId));
 
         assertEquals("유저를 찾을수 없습니다.", e.getMessage());
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findByIdForUpdate(userId);
         verify(userRepository, never()).save(any(User.class));
     }
 
