@@ -50,7 +50,7 @@ class OrderServiceIntegrationTest {
         Order saved = orderService.create(1L, lines);
 
         // when
-        Order found = orderService.getOrderOrThrow(saved.getId());
+        Order found = orderService.getOrderOrThrowCancel(saved.getId());
 
         // then
         assertThat(found).isNotNull();
@@ -62,7 +62,7 @@ class OrderServiceIntegrationTest {
         // when & then
         Long invalidId = 999L;
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
-                () -> orderService.getOrderOrThrow(invalidId)
+                () -> orderService.getOrderOrThrowCancel(invalidId)
         );
         assertThat(e.getMessage()).isEqualTo("주문을 찾을 수 없습니다. orderId=" + invalidId);
     }

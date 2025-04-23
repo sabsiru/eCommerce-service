@@ -77,7 +77,7 @@ class PaymentServiceTest {
         Long paymentId = 1L;
         Payment pending = Payment.withoutCoupon(1L, 100_000);
 
-        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(pending));
+        when(paymentRepository.findByIdForUpdate(paymentId)).thenReturn(Optional.of(pending));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
@@ -85,7 +85,7 @@ class PaymentServiceTest {
 
         // then
         assertEquals(PaymentStatus.COMPLETED, result.getStatus());
-        verify(paymentRepository).findById(paymentId);
+        verify(paymentRepository).findByIdForUpdate(paymentId);
         verify(paymentRepository).save(any(Payment.class));
     }
 
@@ -96,7 +96,7 @@ class PaymentServiceTest {
         Payment payment = Payment.withoutCoupon(1L, 100_000);
         payment.complete(); // 먼저 완료 상태로 전환
 
-        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+        when(paymentRepository.findByIdForUpdate(paymentId)).thenReturn(Optional.of(payment));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
@@ -104,7 +104,7 @@ class PaymentServiceTest {
 
         // then
         assertEquals(PaymentStatus.REFUND, result.getStatus());
-        verify(paymentRepository).findById(paymentId);
+        verify(paymentRepository).findByIdForUpdate(paymentId);
         verify(paymentRepository).save(any(Payment.class));
     }
 }

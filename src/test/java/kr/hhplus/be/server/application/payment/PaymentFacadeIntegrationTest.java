@@ -12,6 +12,7 @@ import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,7 +47,14 @@ class PaymentFacadeIntegrationTest {
 
     @Autowired
     private PaymentRepository paymentRepository;
-
+    @BeforeEach
+    void cleanDb() {
+        productRepository.deleteAll();
+        paymentRepository.deleteAll();
+        userCouponRepository.deleteAll();
+        couponRepository.deleteAll();
+        userRepository.deleteAll();
+    }
     @Test
     void 쿠폰없이_결제_성공시_포인트와_재고가_차감된다() {
         // given
@@ -81,7 +89,7 @@ class PaymentFacadeIntegrationTest {
         UserCoupon uc = userCouponRepository.save(
                 UserCoupon.issue(user.getId(), coupon.getId())
         );
-
+        System.out.println("uc.getId() = " + uc.getId());
         List<OrderLine> lines = List.of(new OrderLine(product.getId(), 1, product.getPrice()));
         Order order = orderService.create(user.getId(), lines);
 

@@ -58,26 +58,26 @@ class OrderServiceTest {
         // given
         Long orderId = 1L;
         Order existing = new Order(1L);
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(existing));
+        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.of(existing));
 
         // when
-        Order found = orderService.getOrderOrThrow(orderId);
+        Order found = orderService.getOrderOrThrowCancel(orderId);
 
         // then
         assertSame(existing, found);
-        verify(orderRepository).findById(orderId);
+        verify(orderRepository).findByIdForUpdate(orderId);
     }
 
     @Test
     void 주문조회_존재하지않는ID_IllegalArgumentException_발생() {
         // given
         Long invalidId = 99L;
-        when(orderRepository.findById(invalidId)).thenReturn(Optional.empty());
+        when(orderRepository.findByIdForUpdate(invalidId)).thenReturn(Optional.empty());
 
         // when & then
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
-                () -> orderService.getOrderOrThrow(invalidId)
+                () -> orderService.getOrderOrThrowCancel(invalidId)
         );
         assertEquals("주문을 찾을 수 없습니다. orderId=" + invalidId, ex.getMessage());
     }
@@ -101,7 +101,7 @@ class OrderServiceTest {
         Long orderId = 1L;
         Order order = new Order(1L);
         order.addLine(1L, 1, 10000);
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.of(order));
         when(orderRepository.save(any(Order.class))).thenReturn(order);
 
         // when
@@ -109,7 +109,7 @@ class OrderServiceTest {
 
         // then
         assertEquals(OrderStatus.PAID, paid.getStatus());
-        verify(orderRepository).findById(orderId);
+        verify(orderRepository).findByIdForUpdate(orderId);
         verify(orderRepository).save(order);
         verify(orderItemRepository).saveAll(order.getItems());
     }
@@ -120,7 +120,7 @@ class OrderServiceTest {
         Long orderId = 1L;
         Order order = new Order(1L);
         order.addLine(1L, 1, 10000);
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.of(order));
         when(orderRepository.save(any(Order.class))).thenReturn(order);
 
         // when
@@ -128,7 +128,7 @@ class OrderServiceTest {
 
         // then
         assertEquals(OrderStatus.CANCEL, canceled.getStatus());
-        verify(orderRepository).findById(orderId);
+        verify(orderRepository).findByIdForUpdate(orderId);
         verify(orderRepository).save(order);
         verify(orderItemRepository).saveAll(order.getItems());
     }
@@ -139,7 +139,7 @@ class OrderServiceTest {
         Long orderId = 1L;
         Order order = new Order(1L);
         order.addLine(1L, 1, 10000);
-        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.of(order));
         when(orderRepository.save(any(Order.class))).thenReturn(order);
 
         List<OrderItem> newItems = List.of(
@@ -153,7 +153,7 @@ class OrderServiceTest {
         // then
         assertEquals(2, updated.getItems().size());
         assertEquals(2*15000 + 1*20000, updated.getTotalAmount());
-        verify(orderRepository).findById(orderId);
+        verify(orderRepository).findByIdForUpdate(orderId);
         verify(orderRepository).save(updated);
         verify(orderItemRepository).saveAll(updated.getItems());
     }

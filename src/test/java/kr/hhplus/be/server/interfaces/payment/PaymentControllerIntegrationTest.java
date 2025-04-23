@@ -14,6 +14,7 @@ import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -56,6 +57,14 @@ class PaymentControllerIntegrationTest {
     @Autowired
     private CouponRepository couponRepository;
 
+    @BeforeEach
+    void cleanDb() {
+        productRepository.deleteAll();
+        couponRepository.deleteAll();
+        userCouponRepository.deleteAll();
+        orderRepository.deleteAll();
+        userRepository.deleteAll();
+    }
     private Order createOrder(Long userId, Product product, int quantity) {
         Order order = new Order(userId);
         order.addLine(product.getId(), quantity, product.getPrice());
@@ -196,7 +205,7 @@ class PaymentControllerIntegrationTest {
         Long invalidPaymentId = 9999L;
         mockMvc.perform(patch("/payments/{paymentId}/refund", invalidPaymentId))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("결제 정보를 찾을 수 없습니다.")));
+                .andExpect(content().string(containsString("결제를 찾을 수 없습니다")));
     }
 
 }

@@ -66,7 +66,7 @@ class PaymentFacadeTest {
 
     @Test
     void 결제_정상_쿠폰없음() {
-        when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
+        when(orderService.getOrderOrThrowPaid(orderId)).thenReturn(order);
         when(orderService.getOrderItems(orderId)).thenReturn(order.getItems());
         when(couponService.findByUserId(userId)).thenReturn(Collections.emptyList());
         when(productService.decreaseStock(productId, quantity)).thenReturn(mock(Product.class));
@@ -102,7 +102,7 @@ class PaymentFacadeTest {
         Coupon coupon = Coupon.create("test", 30, discount, LocalDateTime.now().plusDays(1), 10);
         UserCoupon uc = UserCoupon.issue(userId, couponId);
 
-        when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
+        when(orderService.getOrderOrThrowPaid(orderId)).thenReturn(order);
         when(orderService.getOrderItems(orderId)).thenReturn(order.getItems());
         when(couponService.findByUserId(userId)).thenReturn(List.of(uc));
         when(couponService.getCouponOrThrow(couponId)).thenReturn(coupon);
@@ -130,7 +130,7 @@ class PaymentFacadeTest {
 
     @Test
     void 결제_실패_재고_부족() {
-        when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
+        when(orderService.getOrderOrThrowPaid(orderId)).thenReturn(order);
         when(orderService.getOrderItems(orderId)).thenReturn(order.getItems());
         doThrow(new IllegalStateException("상품 재고가 부족합니다.")).when(productService).decreaseStock(productId, quantity);
 
@@ -141,7 +141,7 @@ class PaymentFacadeTest {
 
     @Test
     void 결제_실패_포인트부족() {
-        when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
+        when(orderService.getOrderOrThrowPaid(orderId)).thenReturn(order);
         when(orderService.getOrderItems(orderId)).thenReturn(order.getItems());
         when(couponService.findByUserId(userId)).thenReturn(Collections.emptyList());
         when(productService.decreaseStock(productId, quantity)).thenReturn(mock(Product.class));
@@ -159,7 +159,7 @@ class PaymentFacadeTest {
         refunded.refund();
         Long paymentId = refunded.getId();  // ★ paymentId를 꺼냅니다.
 
-        when(orderService.getOrderOrThrow(orderId)).thenReturn(order);
+        when(orderService.getOrderOrThrowCancel(orderId)).thenReturn(order);
         // ↓ 새로운 stub: 이 리스트를 돌면서 increaseStock 호출이 일어나야 합니다
         List<OrderItem> dummyItems = List.of(
                 new OrderItem(order, productId, quantity, /*orderPrice*/ 10000)

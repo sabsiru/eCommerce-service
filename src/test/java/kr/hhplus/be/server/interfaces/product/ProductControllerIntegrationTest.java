@@ -7,6 +7,8 @@ import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderItemRepository;
 import kr.hhplus.be.server.domain.order.OrderRepository;
+import kr.hhplus.be.server.domain.product.PopularProductSummary;
+import kr.hhplus.be.server.domain.product.PopularProductSummaryRepository;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import org.junit.jupiter.api.Test;
@@ -16,9 +18,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
@@ -44,30 +49,25 @@ class ProductControllerIntegrationTest {
     private OrderItemRepository orderItemRepository;
 
     @Autowired
+    private PopularProductSummaryRepository summaryRepository;
+
+    @Autowired
     ObjectMapper objectMapper;
 
     @Test
     void 인기상품_정상_조회() throws Exception {
-        // given
-        List<Product> products = new ArrayList<>();
-        for (int i = 1; i <= 10; i++) {
-            products.add(productRepository.save(new Product("상품" + i, 1000 * i, 100, 1L)));
-        }
-
-        // 각 상품별로 서로 다른 판매 수량 설정 (10개, 9개, ..., 1개)
-        Order order = new Order(1L);
-        for (int i = 0; i < products.size(); i++) {
-            Product p = products.get(i);
-            int qty = 10 - i;
-            order.addLine(p.getId(), qty, p.getPrice());
-        }
-
-        orderRepository.saveAndFlush(order);
-        orderItemRepository.saveAll(order.getItems());
+        LocalDate summaryDate = LocalDate.now().minusDays(1);
+        List<PopularProductSummary> summaries = IntStream.rangeClosed(1, 5)
+                .mapToObj(i -> new PopularProductSummary(
+                        (long) i,           // productId
+                        11 - i,             // totalQuantity: 10,9,8,7,6
+                        summaryDate         // summaryDate is LocalDate
+                ))
+                .collect(Collectors.toList());
+        summaryRepository.saveAll(summaries);
 
         // when & then
         mockMvc.perform(get("/products/popular")
-                        .param("fromDate", LocalDateTime.now().minusDays(3).toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(5)))
@@ -80,14 +80,15 @@ class ProductControllerIntegrationTest {
 
     @Test
     void 전체_상품_페이징_조회() throws Exception {
-        int size = 20;
+        int offset = 0;
+        int limit  = 20;
 
-        mockMvc.perform(get("/products")
-                        .param("page", "0")
-                        .param("size", String.valueOf(size)))
+        mockMvc.perform(get("/products/latest")
+                        .param("offset", String.valueOf(offset))
+                        .param("limit",  String.valueOf(limit))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.length()", lessThanOrEqualTo(size)))
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.totalElements").exists());
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()", lessThanOrEqualTo(limit)));
     }
 }
