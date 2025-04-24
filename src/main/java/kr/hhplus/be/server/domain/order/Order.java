@@ -1,10 +1,7 @@
 package kr.hhplus.be.server.domain.order;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -16,6 +13,8 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "orders")  // "order"는 예약어이므로 테이블명 변경
+@AllArgsConstructor
+@Builder
 public class Order {
 
     @Id

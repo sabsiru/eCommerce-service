@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.interfaces.order;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import kr.hhplus.be.server.application.order.OrderResult;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderStatus;

@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.interfaces.advice;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -13,7 +14,11 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<String> handleIllegalState(IllegalStateException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
+    public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException e) {
+        return ResponseEntity
+                .badRequest()
+                .body(new ErrorResponse("FAIL", e.getMessage()));
     }
+
+    public record ErrorResponse(String code, String message) {}
 }
