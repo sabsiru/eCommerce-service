@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.product.ProductService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +24,11 @@ class ProductServiceIntegrationTest {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @BeforeEach
+    void cleanDb() {
+        productRepository.deleteAll();
+    }
 
     @Test
     void 전체_상품_조회() {

@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChargePointRequest {
+public class UserPointRequest {
     private Long userId;
     private int chargeAmount;
 }

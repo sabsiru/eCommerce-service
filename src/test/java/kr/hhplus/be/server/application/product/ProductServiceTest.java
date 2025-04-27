@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -36,14 +37,14 @@ class ProductServiceTest {
         int expectedStock = 50;
 
         Product product = new Product(productId, "Test Product", 10000, expectedStock, 1L, LocalDateTime.now(), LocalDateTime.now());
-        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(product));
 
         // when
         int actualStock = productService.getStock(productId);
 
         // then
         assertEquals(expectedStock, actualStock);
-        verify(productRepository, times(1)).findById(productId);
+        verify(productRepository, times(1)).findByIdForUpdate(productId);
     }
 
     @Test
@@ -58,7 +59,7 @@ class ProductServiceTest {
                 .categoryId(1L)
                 .build();
 
-        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(product));
 
         // when & then
         assertDoesNotThrow(() -> productService.checkStock(productId, 5));
@@ -76,7 +77,7 @@ class ProductServiceTest {
                 .categoryId(1L)
                 .build();
 
-        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(product));
 
         // when & then
         IllegalStateException exception = assertThrows(IllegalStateException.class,
@@ -98,23 +99,23 @@ class ProductServiceTest {
                 LocalDateTime.now()
         );
 
-        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(product));
 
         Product found = productService.getProductOrThrow(productId);
         assertNotNull(found);
         assertEquals(productId, found.getId());
-        verify(productRepository, times(1)).findById(productId);
+        verify(productRepository, times(1)).findByIdForUpdate(productId);
     }
 
     @Test
     void 단일상품조회_실패_테스트() {
         Long productId = 1L;
-        when(productRepository.findById(productId)).thenReturn(Optional.empty());
+        when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.empty());
 
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> productService.getProductOrThrow(productId));
         assertEquals("상품을 찾을 수 없습니다. productId=" + productId, e.getMessage());
-        verify(productRepository, times(1)).findById(productId);
+        verify(productRepository, times(1)).findByIdForUpdate(productId);
     }
 
     @Test
@@ -128,12 +129,13 @@ class ProductServiceTest {
                 LocalDateTime.now(), LocalDateTime.now()
         );
         List<Product> products = Arrays.asList(product1, product2);
-        when(productRepository.findAll()).thenReturn(products);
-
         Pageable pageable = PageRequest.of(0, 20);
+        when(productRepository.findAll(pageable)).thenReturn(new PageImpl<>(products));
+
+
         Page<Product> result = productService.getProducts(pageable);
 
-        verify(productRepository, times(1)).findAll();
+        verify(productRepository, times(1)).findAll(pageable);
     }
 
     @Test
@@ -146,7 +148,7 @@ class ProductServiceTest {
 
         Product product = new Product(productId, "Test Product", 10_000, initialStock, 1L, LocalDateTime.now(), LocalDateTime.now());
 
-        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(product));
         when(productRepository.save(any(Product.class))).thenReturn(product);
 
         // when
@@ -154,7 +156,7 @@ class ProductServiceTest {
 
         // then
         assertEquals(expectedStock, result.getStock());
-        verify(productRepository, times(1)).findById(productId);
+        verify(productRepository, times(1)).findByIdForUpdate(productId);
         verify(productRepository, times(1)).save(any(Product.class));
     }
 
@@ -168,7 +170,7 @@ class ProductServiceTest {
 
         Product product = new Product(productId, "Test Product", 10_000, initialStock, 1L, LocalDateTime.now(), LocalDateTime.now());
 
-        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(product));
         when(productRepository.save(any(Product.class))).thenReturn(product);
 
         // when
@@ -176,7 +178,7 @@ class ProductServiceTest {
 
         // then
         assertEquals(expectedStock, result.getStock());
-        verify(productRepository, times(1)).findById(productId);
+        verify(productRepository, times(1)).findByIdForUpdate(productId);
         verify(productRepository, times(1)).save(any(Product.class));
     }
 
@@ -197,7 +199,7 @@ class ProductServiceTest {
                 LocalDateTime.now()
         );
 
-        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+        when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(product));
 
         // when & then
         IllegalStateException e = assertThrows(IllegalStateException.class,

@@ -5,6 +5,7 @@ import kr.hhplus.be.server.domain.order.OrderItemRepository;
 import kr.hhplus.be.server.domain.order.OrderRepository;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,6 +32,11 @@ class ProductFacadeIntegrationTest {
     @Autowired
     OrderItemRepository orderItemRepository;
 
+    @BeforeEach
+    void cleanDb() {
+        productRepository.deleteAll();
+        orderRepository.deleteAll();
+    }
     @Test
     void 인기_상품_조회_성공() {
         // given: 7개 상품을 명확한 수량으로 주문

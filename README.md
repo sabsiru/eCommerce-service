@@ -1,12 +1,27 @@
-#  조회 성능 개선 보고서
+# 동시성 제어
+
+## 1.[데이터베이스 락 개념 정리](docs/concurrency/db-lock.md)
+
+## 2.[유저 포인트 동시성 제어 보고서](docs/concurrency/point-concurrency.md)
+
+## 3.[쿠폰 발급 동시성 제어 보고서](docs/concurrency/coupon-concurrency.md)
+
+## 4.[결제 시 재고 차감, 환불 시 재고 증가 동시성 제어 보고서](docs/concurrency/order-payment-product-concurrency.md)
+
+---
+<details>
+<summary>4주 차</summary>
+
+##  조회 성능 개선 보고서
 
 ## 1. [인기상품조회](docs/performance/popular-product/popular-product.md)
 
 ## 2. [전체상품조회(페이징)](docs/performance/get-product-paging/get-product-paging.md)
 
+</details>
 ---
 <details>
-<summary>1~3주차</summary>
+<summary>1~3주 차</summary>
 
 
 # 0. 마일스톤

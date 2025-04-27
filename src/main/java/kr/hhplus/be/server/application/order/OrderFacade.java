@@ -1,11 +1,11 @@
 package kr.hhplus.be.server.application.order;
 
-import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.order.*;
 import kr.hhplus.be.server.domain.product.ProductService;
 import kr.hhplus.be.server.domain.user.UserPointService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,25 +19,19 @@ public class OrderFacade {
     private final ProductService productService;
     private final UserPointService userPointService;
 
-    /**
-     * 주문 생성 및 재고 차감 처리
-     */
+
     public OrderResult.Create processOrder(OrderCommand.Create command) {
         userPointService.getUserOrThrow(command.getUserId());
-        // 1. 재고 확인 먼저
         for (OrderCommand.Item item : command.getItems()) {
             productService.checkStock(item.getProductId(), item.getQuantity());
         }
 
-        // 2. 주문 도메인에서 order + item 생성 (연관관계도 도메인 내부에서 구성)
         List<OrderLine> lines = command.getItems().stream()
                 .map(i -> new OrderLine(i.getProductId(), i.getQuantity(), i.getItemPrice()))
                 .collect(Collectors.toList());
 
-        // 3. 저장
         Order saved = orderService.create(command.getUserId(), lines);
 
-        // 4. 응답 변환
         List<OrderResult.Item> resultItems = saved.getItems().stream()
                 .map(i -> new OrderResult.Item(i.getProductId(), i.getQuantity(), i.getOrderPrice()))
                 .collect(Collectors.toList());
@@ -51,7 +45,6 @@ public class OrderFacade {
         );
     }
 
-    // OrderFacade.java
     public OrderResult.Create cancelOrder(Long orderId) {
         Order canceled = orderService.cancel(orderId);
 
