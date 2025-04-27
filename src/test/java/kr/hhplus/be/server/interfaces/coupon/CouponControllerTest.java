@@ -45,8 +45,8 @@ public class CouponControllerTest {
         Coupon coupon = new Coupon(
                 couponId,
                 "테스트 쿠폰",
-                20,              // 할인율 20%
-                2000,            // 최대 할인액 2000원
+                20,
+                2000,
                 CouponStatus.ACTIVE,
                 now.plusDays(7),
                 now,
@@ -82,7 +82,6 @@ public class CouponControllerTest {
         String expectedJson = objectMapper.writeValueAsString(userCoupon);
 
         // when & then
-        // 경로 변수로 userId를 받는 형식: /coupons/{userId}/issue
         mockMvc.perform(post("/coupons/{userId}/issue", userId)
                         .param("couponId", couponId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
@@ -95,7 +94,6 @@ public class CouponControllerTest {
         // given
         Long userId = 100L;
         Long couponId = 500L;
-        // CouponFacade.issueCoupon() 호출 시 중복 발급 상황으로 IllegalStateException 발생하도록 stub 처리
         when(couponFacade.issueCoupon(eq(userId), eq(couponId)))
                 .thenThrow(new IllegalStateException("이미 발급받은 쿠폰입니다."));
 

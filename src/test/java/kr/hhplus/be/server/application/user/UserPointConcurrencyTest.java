@@ -34,7 +34,8 @@ class UserPointConcurrencyTest {
     @Test
     void 동시_포인트_사용_정상_처리_확인() throws InterruptedException {
         // given
-        User user = userRepository.save(User.create("동시성테스트", 1000));
+        int initialPoint = 1000;
+        User user = userRepository.save(User.create("동시성테스트", initialPoint));
         int threads = 10;
         int amount = 200;
 
@@ -57,10 +58,10 @@ class UserPointConcurrencyTest {
         // when
         User updated = userRepository.findById(user.getId()).orElseThrow();
         List<PointHistory> histories = pointHistoryRepository.findByUserId(user.getId());
-
+        System.out.println("updated.getPoint() = " + updated.getPoint());
         // then
-        assertThat(updated.getPoint()).isBetween(0, 1000);
-        assertThat(histories.size()).isLessThanOrEqualTo(5);
+        assertThat(updated.getPoint()).isBetween(0, initialPoint);
+        assertThat(histories.size()).isLessThanOrEqualTo(initialPoint/amount);
 
     }
 

@@ -35,7 +35,7 @@ class CouponConcurrencyTest {
     private UserRepository userRepository;
 
     @Test
-    void 동시_쿠폰_발급_테스트() throws InterruptedException {
+    void 여러유저가_동시_쿠폰_발급시_1건발급_테스트() throws InterruptedException {
         // given
         Coupon coupon = couponRepository.save(Coupon.create("테스트쿠폰", 10, 1000, LocalDateTime.now().plusDays(1), 1));
 

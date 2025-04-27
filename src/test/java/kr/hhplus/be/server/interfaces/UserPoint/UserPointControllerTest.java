@@ -28,14 +28,13 @@ public class UserPointControllerTest {
 
     @Test
     void 정상_충전() throws Exception {
-        // given: UserPointRequest 데이터와 Stub 처리할 결과 User 객체 생성
+        // given
         Long userId = 1L;
         int chargeAmount = 5000;
-        // User 객체: id, name, point, createdAt, updatedAt
         User updatedUser = new User(userId, "테스터", 15000, LocalDateTime.now().minusDays(1), LocalDateTime.now());
         when(userPointFacade.chargePoint(eq(userId), eq(chargeAmount))).thenReturn(updatedUser);
 
-        // when & then: POST /{userId}/charge 호출하여, JSON 응답이 올바른지 검증
+        // when & then
         String requestBody = "{\"userId\": 1, \"chargeAmount\": 5000}";
 
         mockMvc.perform(post("/point/1/charge")
@@ -69,16 +68,15 @@ public class UserPointControllerTest {
 
         @Test
         void 충전_1회한도_초과() throws Exception {
-            // given: 최대 충전 한도(예: 1,000,000원)를 초과하는 충전 금액(예: 1,500,000원)을 입력하면 예외가 발생해야 함
+            // given
             Long userId = 1L;
             int excessiveChargeAmount = 1500000; // 1,500,000원
-            // 최대 한도 초과 시 "1회 충전 금액은 1,000,000원 입니다."라는 메시지의 IllegalArgumentException 발생하도록 Stub 처리
             when(userPointFacade.chargePoint(eq(userId), eq(excessiveChargeAmount)))
                     .thenThrow(new IllegalArgumentException("1회 충전 금액은 `1,000,000원` 입니다."));
 
             String requestBody = "{\"userId\": 1, \"chargeAmount\": " + excessiveChargeAmount + "}";
 
-            // when & then: POST 요청을 보내고, HTTP 400 Bad Request 상태와 예외 메시지가 응답에 포함되는지 검증
+            // when & t
             mockMvc.perform(post("/point/1/charge")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))

@@ -66,7 +66,7 @@ class PaymentControllerTest {
         Long orderId = 1L;
         PaymentRequest request = new PaymentRequest(15000);
 
-        Long couponId = 500L; // 결제 시 쿠폰 사용이 있는 경우
+        Long couponId = 500L;
 
         // 20% 할인 쿠폰이지만 최대 할인액 2,000원 적용: 15000 * 0.2 = 3000이 계산되나, 최대 2,000원으로 제한.
         int finalPaymentAmount = 15000 - 2000; // 13000
@@ -122,7 +122,7 @@ class PaymentControllerTest {
         // given
         long orderId = 1L;
         Long couponId = 500L;
-        // 환불 Payment: couponId가 존재하는 경우
+
         Payment refundPayment = Payment.builder()
                 .id(1L)
                 .orderId(orderId)
@@ -149,9 +149,7 @@ class PaymentControllerTest {
         Long orderId = 1L;
         int paymentAmount = 50000;
 
-        // JSON 본문
         String requestBody = "{\"paymentAmount\": " + 50000 + "}";
-        // mock 처리
         doThrow(new IllegalStateException("결제 실패: 재고 부족 또는 포인트 부족"))
                 .when(paymentFacade).processPayment(orderId, paymentAmount);
 
