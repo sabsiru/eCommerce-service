@@ -35,5 +35,6 @@ public class PopularProductSummaryBatchService {
                 .toList();
 
         summaryRepository.saveAll(entities);
+
     }
 }

@@ -17,4 +17,5 @@ public class PopularProductSummaryScheduler {
     public void runDaily() {
         batchService.updateSummary(LocalDateTime.now());
     }
+
 }

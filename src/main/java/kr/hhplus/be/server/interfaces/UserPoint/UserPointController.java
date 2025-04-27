@@ -16,7 +16,7 @@ public class UserPointController {
 
     private final UserPointFacade userPointFacade;
 
-    @PostMapping("/{userId}/charge")
+    @PostMapping("/charge")
     public ResponseEntity<User> chargePoint(@RequestBody UserPointRequest request) {
         User updatedUser = userPointFacade.chargePoint(request.getUserId(), request.getChargeAmount());
         return ResponseEntity.ok(updatedUser);

@@ -19,7 +19,7 @@ public class PopularProductSummary {
 
     private Long productId;
 
-    private int totalQuantity;   // int로 변경
+    private int totalQuantity;
 
     private LocalDate summaryDate;
 
