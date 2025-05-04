@@ -9,15 +9,15 @@ import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
-@Transactional
 public class CouponFacade {
 
     private final CouponService couponService;
 
     public UserCoupon issueCoupon(Long userId, Long couponId) {
-        return couponService.issueCoupon(userId, couponId);
+        return couponService.issue(userId, couponId);
     }
 
+    @Transactional
     public Coupon getCouponOrThrow(Long couponId) {
         return couponService.getCouponOrThrow(couponId);
     }
