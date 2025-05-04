@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
-@Transactional
 public class ProductService {
 
     private final ProductRepository productRepository;
@@ -22,6 +21,7 @@ public class ProductService {
         return productRepository.findAll(pageable);
     }
 
+    @Transactional
     public Product decreaseStock(long productId, int decreaseQuantity) {
         Product product = getProductOrThrow(productId);
         product.decreaseStock(decreaseQuantity);
@@ -29,6 +29,7 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    @Transactional
     public Product increaseStock(long productId, int increaseQuantity) {
         Product product = getProductOrThrow(productId);
         product.increaseStock(increaseQuantity);
