@@ -1,18 +1,18 @@
 package kr.hhplus.be.server.application.payment;
 
-import kr.hhplus.be.server.domain.coupon.CouponService;
-import kr.hhplus.be.server.domain.order.OrderService;
-import kr.hhplus.be.server.domain.product.ProductService;
+import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.application.user.UserPointFacade;
 import kr.hhplus.be.server.domain.coupon.Coupon;
+import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderItem;
+import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentService;
+import kr.hhplus.be.server.domain.product.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -41,7 +41,7 @@ public class PaymentFacade {
         if (!byUserId.isEmpty()) {
             Long couponId = byUserId.get(0).getCouponId();
             calculateDiscount = calculateDiscount(couponId, orderId);
-            couponService.useCoupon(couponId);
+            couponService.use(couponId);
         }
 
         int finalPaymentAmount = paymentAmount - calculateDiscount;
@@ -56,12 +56,12 @@ public class PaymentFacade {
             payment = paymentService.initiateWithoutCoupon(orderId, finalPaymentAmount);
         }
 
-        payment = paymentService.completePayment(payment.getId());
+        payment = paymentService.complete(payment.getId());
         return payment;
     }
 
     public Payment processRefund(Long paymentId) {
-        Payment refundPayment = paymentService.refundPayment(paymentId);
+        Payment refundPayment = paymentService.refund(paymentId);
 
         Order order = orderService.getOrderOrThrowCancel(refundPayment.getOrderId());
 
@@ -69,7 +69,7 @@ public class PaymentFacade {
         userPointFacade.refundPoint(order.getUserId(), refundPayment.getAmount(), order.getId());
 
         if (refundPayment.getCouponId() != null) {
-            couponService.refundCoupon(refundPayment.getCouponId());
+            couponService.refund(refundPayment.getCouponId());
         }
 
         List<OrderItem> items = orderService.getOrderItems(refundPayment.getOrderId());

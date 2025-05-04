@@ -97,7 +97,7 @@ class PaymentConcurrencyTest {
     @Test
     void 재고_부족_상황_동시_차감_테스트() throws InterruptedException {
         // given
-        User user = userRepository.save(User.create("동시성테스트유저", 100000));
+        User user = userRepository.save(User.create("동시성테스트유저", 10000));
         Product product = productRepository.save(new Product("상품", 10000, 1, 1L));
 
         List<OrderLine> lines = List.of(new OrderLine(product.getId(), 1, product.getPrice()));
@@ -129,8 +129,8 @@ class PaymentConcurrencyTest {
         List<Payment> byOrderId = paymentRepository.findByOrderId(order.getId());
         Product updated = productRepository.findById(product.getId())
                 .orElseThrow();
-        assertThat(byOrderId).hasSize(1);
         assertThat(updated.getStock()).isZero();
+        assertThat(byOrderId).hasSize(1);
         assertThat(exceptionCount.get()).isEqualTo(threadCount - 1);
     }
 
@@ -232,8 +232,8 @@ class PaymentConcurrencyTest {
             executor.submit(() -> {
                 try {
                     paymentFacade.processRefund(payment.getId());
-                } catch (Exception ignored) {
-                    // 중복 환불 예외 무시
+                } catch (Exception e) {
+                   e.printStackTrace();
                 } finally {
                     latch.countDown();
                 }

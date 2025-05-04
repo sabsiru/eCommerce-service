@@ -81,7 +81,7 @@ class PaymentServiceTest {
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        Payment result = paymentService.completePayment(paymentId);
+        Payment result = paymentService.complete(paymentId);
 
         // then
         assertEquals(PaymentStatus.COMPLETED, result.getStatus());
@@ -100,7 +100,7 @@ class PaymentServiceTest {
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        Payment result = paymentService.refundPayment(paymentId);
+        Payment result = paymentService.refund(paymentId);
 
         // then
         assertEquals(PaymentStatus.REFUND, result.getStatus());
