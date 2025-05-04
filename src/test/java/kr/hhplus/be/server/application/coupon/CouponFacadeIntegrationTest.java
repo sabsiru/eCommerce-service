@@ -14,7 +14,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.assertThrows;
 
 @SpringBootTest
-@Transactional
 class CouponFacadeIntegrationTest {
 
     @Autowired
