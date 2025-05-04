@@ -56,6 +56,12 @@ dependencies {
 	// instancio
 	implementation ("org.instancio:instancio-core:2.0.0")
 
+	//redis
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
+	//redisson
+	implementation("org.redisson:redisson-spring-boot-starter:3.24.0")
+
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-testcontainers")
