@@ -8,6 +8,10 @@
 
 ## 4.[결제 시 재고 차감, 환불 시 재고 증가 동시성 제어 보고서](docs/concurrency/order-payment-product-concurrency.md)
 
+# 캐시
+
+## 1. [인기 상품 조회 개선 보고서](docs/redis/cache.md)
+
 ---
 <details>
 <summary>4주 차</summary>
