@@ -16,7 +16,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @SpringBootTest
-@Transactional
 class ProductServiceIntegrationTest {
 
     @Autowired

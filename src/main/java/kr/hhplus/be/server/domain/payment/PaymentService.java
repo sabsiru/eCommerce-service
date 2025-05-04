@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 @Service
+@Transactional
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
@@ -22,14 +23,14 @@ public class PaymentService {
         return paymentRepository.save(payment);
     }
 
-    public Payment completePayment(Long paymentId) {
+    public Payment complete(Long paymentId) {
         Payment payment = getPaymentForCompleteOrThrow(paymentId);
         payment.complete();
 
         return paymentRepository.save(payment);
     }
 
-    public Payment refundPayment(Long paymentId) {
+    public Payment refund(Long paymentId) {
         Payment payment = getPaymentForRefundOrThrow(paymentId);
         payment.refund();
 
