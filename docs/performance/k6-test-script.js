@@ -19,10 +19,9 @@ export const options = {
 };
 
 export default function () {
-    const res = http.get('http://localhost:8080/products/latest?page=0&size=20');
+    const res = http.get('http://localhost:8080/products/popular');
 
     check(res, {
         'status is 200': (r) => r.status === 200,
-        '응답에 productId 포함': (r) => r.json()[0]?.productId !== undefined,
     });
 }
