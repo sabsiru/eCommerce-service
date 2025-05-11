@@ -1,7 +1,6 @@
 package kr.hhplus.be.server.application.coupon;
 
 import kr.hhplus.be.server.domain.coupon.*;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -80,7 +79,7 @@ class CouponServiceTest {
         when(couponRepository.save(any())).thenReturn(updated);
         when(userCouponRepository.save(any())).thenReturn(issued);
 
-        UserCoupon result = couponService.issueCoupon(userId, couponId);
+        UserCoupon result = couponService.issue(userId, couponId);
 
         assertNotNull(result);
         assertEquals(userId, result.getUserId());
@@ -108,7 +107,7 @@ class CouponServiceTest {
 
         when(couponRepository.findByIdForUpdate(couponId)).thenReturn(Optional.of(coupon));
 
-        assertThrows(IllegalStateException.class, () -> couponService.issueCoupon(userId,couponId));
+        assertThrows(IllegalStateException.class, () -> couponService.issue(userId,couponId));
     }
 
     @Test
@@ -129,7 +128,7 @@ class CouponServiceTest {
 
         when(couponRepository.findByIdForUpdate(couponId)).thenReturn(Optional.of(expiredCoupon));
 
-        assertThrows(IllegalArgumentException.class, () -> couponService.issueCoupon(userId,couponId));
+        assertThrows(IllegalArgumentException.class, () -> couponService.issue(userId,couponId));
     }
 
     @Test
@@ -155,7 +154,7 @@ class CouponServiceTest {
         when(couponRepository.save(any(Coupon.class))).thenReturn(updatedCoupon);
         when(userCouponRepository.save(any())).thenReturn(issued);
 
-        UserCoupon result = couponService.issueCoupon(userId, couponId);
+        UserCoupon result = couponService.issue(userId, couponId);
 
         assertEquals(UserCouponStatus.ISSUED, result.getStatus());
         assertEquals(couponId, result.getCouponId());
@@ -192,7 +191,7 @@ class CouponServiceTest {
                 .thenReturn(issuedUserCoupon);
 
         // when
-        UserCoupon result = couponService.issueCoupon(userId, couponId);
+        UserCoupon result = couponService.issue(userId, couponId);
 
         // then
         assertNotNull(result);

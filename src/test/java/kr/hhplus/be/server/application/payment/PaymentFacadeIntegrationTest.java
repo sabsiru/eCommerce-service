@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.application.payment;
 
-import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.coupon.*;
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderLine;
@@ -24,7 +23,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
-@Transactional
 class PaymentFacadeIntegrationTest {
 
     @Autowired
@@ -160,6 +158,9 @@ class PaymentFacadeIntegrationTest {
         assertThrows(IllegalStateException.class,
                 () -> paymentFacade.processPayment(order.getId(), order.getTotalAmount())
         );
+
+        Product updated = productRepository.findById(product.getId()).orElseThrow();
+        assertThat(updated.getStock()).isEqualTo(10);
     }
 
     @Test

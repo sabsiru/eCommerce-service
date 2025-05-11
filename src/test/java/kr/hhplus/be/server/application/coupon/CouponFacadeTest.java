@@ -36,7 +36,7 @@ class CouponFacadeTest {
                 1L, userId, couponId, UserCouponStatus.ISSUED, now, null
         );
 
-        when(couponService.issueCoupon(userId, couponId))
+        when(couponService.issue(userId, couponId))
                 .thenReturn(savedUserCoupon);
 
         // when
@@ -49,7 +49,7 @@ class CouponFacadeTest {
         assertEquals(couponId, result.getCouponId());
         assertEquals(UserCouponStatus.ISSUED, result.getStatus());
 
-        verify(couponService, times(1)).issueCoupon(userId, couponId);
+        verify(couponService, times(1)).issue(userId, couponId);
     }
 
     @Test
@@ -59,7 +59,7 @@ class CouponFacadeTest {
         Long couponId = 500L;
 
         doThrow(new IllegalStateException("이미 발급받은 쿠폰입니다."))
-                .when(couponService).issueCoupon(userId, couponId);
+                .when(couponService).issue(userId, couponId);
 
         // when & then
         IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
@@ -67,6 +67,6 @@ class CouponFacadeTest {
         );
         assertEquals("이미 발급받은 쿠폰입니다.", exception.getMessage());
 
-        verify(couponService, times(1)).issueCoupon(userId, couponId);
+        verify(couponService, times(1)).issue(userId, couponId);
     }
 }

@@ -2,6 +2,7 @@ package kr.hhplus.be.server.domain.order;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class OrderService {
         return orderRepository.findAll();
     }
 
+    @Transactional
     public Order pay(Long orderId) {
         Order order = getOrderOrThrowPaid(orderId);
         order.pay();
@@ -47,13 +49,13 @@ public class OrderService {
     }
 
 
-
     public Order save(Order order) {
         Order saved = orderRepository.save(order);
         orderItemRepository.saveAll(order.getItems());
         return saved;
     }
 
+    @Transactional
     public List<OrderItem> getOrderItems(Long orderId) {
         return orderItemRepository.findByOrderId(orderId);
     }
@@ -66,20 +68,22 @@ public class OrderService {
         return byUserId;
     }
 
+    @Transactional
     public Order getOrderOrThrowCancel(Long orderId) {
         Order order = orderRepository.findByIdForUpdate(orderId).orElseThrow(() ->
                 new IllegalArgumentException("주문을 찾을 수 없습니다. orderId=" + orderId));
-        if(order.getStatus() == OrderStatus.CANCEL){
+        if (order.getStatus() == OrderStatus.CANCEL) {
             throw new IllegalStateException(
                     "취소된 주문입니다. orderId=" + orderId);
         }
         return order;
     }
 
+    @Transactional
     public Order getOrderOrThrowPaid(Long orderId) {
         Order order = orderRepository.findByIdForUpdate(orderId).orElseThrow(() ->
                 new IllegalArgumentException("주문을 찾을 수 없습니다. orderId=" + orderId));
-        if(order.getStatus() == OrderStatus.PAID){
+        if (order.getStatus() == OrderStatus.PAID) {
             throw new IllegalStateException(
                     "결제된 주문입니다. orderId=" + orderId);
         }

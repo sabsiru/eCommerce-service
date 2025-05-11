@@ -76,7 +76,7 @@ class PaymentFacadeTest {
         Payment mockPayment = Payment.withoutCoupon(orderId, totalAmount);
         mockPayment.complete();
         when(paymentService.initiateWithoutCoupon(orderId, totalAmount)).thenReturn(mockPayment);
-        when(paymentService.completePayment(mockPayment.getId())).thenReturn(mockPayment);
+        when(paymentService.complete(mockPayment.getId())).thenReturn(mockPayment);
 
         Payment result = paymentFacade.processPayment(orderId, totalAmount);
 
@@ -91,7 +91,7 @@ class PaymentFacadeTest {
         verify(userPointFacade).usePoint(userId, totalAmount);
         verify(orderService).pay(orderId);
         verify(paymentService).initiateWithoutCoupon(orderId, totalAmount);
-        verify(paymentService).completePayment(mockPayment.getId());
+        verify(paymentService).complete(mockPayment.getId());
     }
 
     @Test
@@ -106,7 +106,7 @@ class PaymentFacadeTest {
         when(orderService.getOrderItems(orderId)).thenReturn(order.getItems());
         when(couponService.findByUserId(userId)).thenReturn(List.of(uc));
         when(couponService.getCouponOrThrow(couponId)).thenReturn(coupon);
-        when(couponService.useCoupon(couponId)).thenReturn(uc);
+        when(couponService.use(couponId)).thenReturn(uc);
         when(productService.decreaseStock(productId, quantity)).thenReturn(mock(Product.class));
         when(userPointFacade.usePoint(userId, finalAmount)).thenReturn(mock(User.class));
         when(orderService.pay(orderId)).thenReturn(order);
@@ -114,7 +114,7 @@ class PaymentFacadeTest {
         Payment mockPayment = Payment.withCoupon(orderId, finalAmount, couponId);
         mockPayment.complete();
         when(paymentService.initiateWithCoupon(orderId, finalAmount, couponId)).thenReturn(mockPayment);
-        when(paymentService.completePayment(mockPayment.getId())).thenReturn(mockPayment);
+        when(paymentService.complete(mockPayment.getId())).thenReturn(mockPayment);
 
         Payment result = paymentFacade.processPayment(orderId, totalAmount);
 
@@ -125,7 +125,7 @@ class PaymentFacadeTest {
 
         verify(couponService).findByUserId(userId);
         verify(couponService).getCouponOrThrow(couponId);
-        verify(couponService).useCoupon(couponId);
+        verify(couponService).use(couponId);
     }
 
     @Test
@@ -168,7 +168,7 @@ class PaymentFacadeTest {
         when(orderService.getOrderItems(orderId)).thenReturn(dummyItems);
         when(productService.increaseStock(productId, quantity)).thenReturn(mock(Product.class));
         when(userPointFacade.refundPoint(userId, totalAmount, paymentId)).thenReturn(mock(User.class));
-        when(paymentService.refundPayment(paymentId)).thenReturn(refunded);
+        when(paymentService.refund(paymentId)).thenReturn(refunded);
 
         // when
         Payment result = paymentFacade.processRefund(paymentId);
@@ -176,7 +176,7 @@ class PaymentFacadeTest {
         // then
         assertEquals(PaymentStatus.REFUND, result.getStatus());
 
-        verify(paymentService).refundPayment(paymentId);
+        verify(paymentService).refund(paymentId);
         verify(userPointFacade).refundPoint(userId, totalAmount, paymentId);
         verify(productService).increaseStock(productId, quantity);
     }
@@ -184,7 +184,7 @@ class PaymentFacadeTest {
     @Test
     void 환불_실패_결제미완료일때() {
         // given: paymentService.refundPayment 호출 시 결제 미완료 예외 던지기
-        when(paymentService.refundPayment(orderId))
+        when(paymentService.refund(orderId))
                 .thenThrow(new IllegalStateException("결제가 완료되지 않은 주문입니다."));
 
         // when & then
