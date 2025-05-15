@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.payment;
 
 import jakarta.transaction.Transactional;
+import kr.hhplus.be.server.application.product.PopularProductService;
 import kr.hhplus.be.server.application.user.UserPointFacade;
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.CouponService;
@@ -24,36 +25,23 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 @Transactional
 public class PaymentFacade {
-
     private final OrderService orderService;
     private final UserPointFacade userPointFacade;
     private final PaymentService paymentService;
     private final CouponService couponService;
     private final ProductService productService;
-
-    private final RedisTemplate<String, String> redisTemplate;
-
-    private static final String PRODUCT_SALES_KEY = "product:sales:daily";
-    private static final long TTL_DAYS = 4;
+    private final PopularProductService popularProductService;
 
     public Payment processPayment(Long orderId, int paymentAmount) {
+
         Order order = orderService.getOrderOrThrowPaid(orderId);
-        String today = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE);
 
         List<OrderItem> items = orderService.getOrderItems(orderId);
-        String key = PRODUCT_SALES_KEY + ":" + today;
 
         for (OrderItem item : items) {
             productService.decreaseStock(item.getProductId(), item.getQuantity());
-
-            redisTemplate.opsForZSet().incrementScore(
-                    key,
-                    String.valueOf(item.getProductId()),
-                    item.getQuantity()
-            );
+            popularProductService.incrementProductSales(item.getProductId(), item.getQuantity());
         }
-
-        redisTemplate.expire(key, TTL_DAYS, TimeUnit.DAYS);
 
         int calculateDiscount = 0;
         List<UserCoupon> byUserId = couponService.findByUserId(order.getUserId());
