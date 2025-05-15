@@ -12,9 +12,13 @@ import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentService;
 import kr.hhplus.be.server.domain.product.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -27,13 +31,29 @@ public class PaymentFacade {
     private final CouponService couponService;
     private final ProductService productService;
 
+    private final RedisTemplate<String, String> redisTemplate;
+
+    private static final String PRODUCT_SALES_KEY = "product:sales:daily";
+    private static final long TTL_DAYS = 4;
+
     public Payment processPayment(Long orderId, int paymentAmount) {
         Order order = orderService.getOrderOrThrowPaid(orderId);
+        String today = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE);
 
         List<OrderItem> items = orderService.getOrderItems(orderId);
+        String key = PRODUCT_SALES_KEY + ":" + today;
+
         for (OrderItem item : items) {
             productService.decreaseStock(item.getProductId(), item.getQuantity());
+
+            redisTemplate.opsForZSet().incrementScore(
+                    key,
+                    String.valueOf(item.getProductId()),
+                    item.getQuantity()
+            );
         }
+
+        redisTemplate.expire(key, TTL_DAYS, TimeUnit.DAYS);
 
         int calculateDiscount = 0;
         List<UserCoupon> byUserId = couponService.findByUserId(order.getUserId());
