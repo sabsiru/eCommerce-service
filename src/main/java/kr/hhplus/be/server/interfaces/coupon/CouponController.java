@@ -18,7 +18,7 @@ public class CouponController {
     @ResponseStatus(HttpStatus.CREATED)
     public UserCoupon issueCoupon(@PathVariable Long userId,
                                   @RequestParam Long couponId) {
-        return couponFacade.issueCoupon(userId, couponId);
+        return couponFacade.issue(userId, couponId);
     }
 
     @GetMapping

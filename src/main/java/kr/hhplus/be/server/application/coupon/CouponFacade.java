@@ -13,7 +13,7 @@ public class CouponFacade {
 
     private final CouponService couponService;
 
-    public UserCoupon issueCoupon(Long userId, Long couponId) {
+    public UserCoupon issue(Long userId, Long couponId) {
         return couponService.issue(userId, couponId);
     }
 
