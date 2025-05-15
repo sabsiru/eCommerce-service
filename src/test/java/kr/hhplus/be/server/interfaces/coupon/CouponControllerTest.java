@@ -79,7 +79,7 @@ public class CouponControllerTest {
                 now,
                 null
         );
-        when(couponFacade.issueCoupon(eq(userId), eq(couponId))).thenReturn(userCoupon);
+        when(couponFacade.issue(eq(userId), eq(couponId))).thenReturn(userCoupon);
         String expectedJson = objectMapper.writeValueAsString(userCoupon);
 
         // when & then
@@ -95,7 +95,7 @@ public class CouponControllerTest {
         // given
         Long userId = 100L;
         Long couponId = 500L;
-        when(couponFacade.issueCoupon(eq(userId), eq(couponId)))
+        when(couponFacade.issue(eq(userId), eq(couponId)))
                 .thenThrow(new IllegalStateException("이미 발급받은 쿠폰입니다."));
 
         String expectedMessage = "이미 발급받은 쿠폰입니다.";
