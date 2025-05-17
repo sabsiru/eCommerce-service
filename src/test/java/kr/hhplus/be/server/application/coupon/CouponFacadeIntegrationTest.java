@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.application.coupon;
 
-import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.coupon.*;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserRepository;
@@ -33,7 +32,7 @@ class CouponFacadeIntegrationTest {
         User user = userRepository.save(User.create("사용자", 0));
         Coupon coupon = couponRepository.save(Coupon.create("10% 할인", 10, 3000, LocalDateTime.now().plusDays(3), 100));
 
-        UserCoupon issued = couponFacade.issueCoupon(user.getId(), coupon.getId());
+        UserCoupon issued = couponFacade.issue(user.getId(), coupon.getId());
 
         assertThat(issued.getUserId()).isEqualTo(user.getId());
         assertThat(issued.getCouponId()).isEqualTo(coupon.getId());
@@ -46,9 +45,9 @@ class CouponFacadeIntegrationTest {
         User user2 = userRepository.save(User.create("사용자2", 0));
         Coupon coupon = couponRepository.save(Coupon.create("한정쿠폰", 50, 5000, LocalDateTime.now().plusDays(3), 1));
 
-        couponFacade.issueCoupon(user1.getId(), coupon.getId());
+        couponFacade.issue(user1.getId(), coupon.getId());
 
-        assertThatThrownBy(() -> couponFacade.issueCoupon(user2.getId(), coupon.getId()))
+        assertThatThrownBy(() -> couponFacade.issue(user2.getId(), coupon.getId()))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("쿠폰 발급 수량이 모두 소진되었습니다");
     }
@@ -58,7 +57,7 @@ class CouponFacadeIntegrationTest {
         User user = userRepository.save(User.create("사용자", 0));
         Coupon expiredCoupon = couponRepository.save(Coupon.create("만료쿠폰", 10, 2000, LocalDateTime.now().minusDays(1), 10));
 
-        assertThatThrownBy(() -> couponFacade.issueCoupon(user.getId(), expiredCoupon.getId()))
+        assertThatThrownBy(() -> couponFacade.issue(user.getId(), expiredCoupon.getId()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("만료된 쿠폰입니다");
     }
@@ -85,12 +84,12 @@ class CouponFacadeIntegrationTest {
         );
 
         // when
-        UserCoupon issuedCoupon = couponFacade.issueCoupon(user1.getId(), coupon.getId());
+        UserCoupon issuedCoupon = couponFacade.issue(user1.getId(), coupon.getId());
         assertThat(issuedCoupon.getUserId()).isEqualTo(user1.getId());
 
         // then
         IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
-                couponFacade.issueCoupon(user2.getId(), coupon.getId())
+                couponFacade.issue(user2.getId(), coupon.getId())
         );
 
         assertThat(exception.getMessage()).contains("쿠폰 발급 수량이 모두 소진되었습니다.");

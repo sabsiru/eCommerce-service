@@ -1,10 +1,10 @@
 package kr.hhplus.be.server.domain.coupon;
 
-import kr.hhplus.be.server.application.redis.DistributedLock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -13,6 +13,25 @@ public class CouponService {
 
     private final CouponRepository couponRepository;
     private final UserCouponRepository userCouponRepository;
+    private final CouponInventoryReader couponInventoryReader;
+
+    @Transactional
+    public Coupon create(String name, int discountRate,
+                         int maxDiscountAmount, LocalDateTime expirationAt, int limitCount) {
+        Coupon coupon = Coupon.create(
+                name,
+                discountRate,
+                maxDiscountAmount,
+                expirationAt,
+                limitCount
+        );
+
+        Coupon saved = couponRepository.save(coupon);
+
+        couponInventoryReader.initialize(saved.getId(), limitCount, expirationAt);
+
+        return saved;
+    }
 
     public Coupon getCouponOrThrow(Long couponId) {
         return couponRepository.findById(couponId)
@@ -20,14 +39,16 @@ public class CouponService {
     }
 
     @Transactional
-    @DistributedLock(key = "coupon:{#couponId}", waitTime = 2, leaseTime = 3)
     public UserCoupon issue(Long userId, Long couponId) {
-        Coupon coupon = getCouponOrThrow(couponId);
-        Coupon updated = coupon.increaseIssuedCount();
-        couponRepository.save(updated);
+        couponInventoryReader.issue(couponId, userId);
 
-        UserCoupon userCoupon = UserCoupon.issue(userId, couponId);
+        try {
+            UserCoupon userCoupon = UserCoupon.issue(userId, couponId);
             return userCouponRepository.save(userCoupon);
+        } catch (Exception e) {
+            couponInventoryReader.release(couponId, userId);
+            throw e;
+        }
     }
 
     public UserCoupon getById(Long userCouponId) {

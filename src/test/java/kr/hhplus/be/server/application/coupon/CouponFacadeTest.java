@@ -40,7 +40,7 @@ class CouponFacadeTest {
                 .thenReturn(savedUserCoupon);
 
         // when
-        UserCoupon result = couponFacade.issueCoupon(userId, couponId);
+        UserCoupon result = couponFacade.issue(userId, couponId);
 
         // then
         assertNotNull(result);
@@ -63,7 +63,7 @@ class CouponFacadeTest {
 
         // when & then
         IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
-                couponFacade.issueCoupon(userId, couponId)
+                couponFacade.issue(userId, couponId)
         );
         assertEquals("이미 발급받은 쿠폰입니다.", exception.getMessage());
 
