@@ -26,7 +26,7 @@ public class ProductFacade {
     }
 
     public List<PopularProductInfo> getPopularProducts() {
-        return popularProductService.getPopularProducts();
+        return popularProductService.getPopularProductsRedis();
     }
 
     //조회 테이블

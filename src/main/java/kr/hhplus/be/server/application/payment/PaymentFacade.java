@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.payment;
 
 import jakarta.transaction.Transactional;
+import kr.hhplus.be.server.application.product.PopularProductService;
 import kr.hhplus.be.server.application.user.UserPointFacade;
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.CouponService;
@@ -20,19 +21,22 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 public class PaymentFacade {
-
     private final OrderService orderService;
     private final UserPointFacade userPointFacade;
     private final PaymentService paymentService;
     private final CouponService couponService;
     private final ProductService productService;
+    private final PopularProductService popularProductService;
 
     public Payment processPayment(Long orderId, int paymentAmount) {
+
         Order order = orderService.getOrderOrThrowPaid(orderId);
 
         List<OrderItem> items = orderService.getOrderItems(orderId);
+
         for (OrderItem item : items) {
             productService.decreaseStock(item.getProductId(), item.getQuantity());
+            popularProductService.incrementProductSales(item.getProductId(), item.getQuantity());
         }
 
         int calculateDiscount = 0;

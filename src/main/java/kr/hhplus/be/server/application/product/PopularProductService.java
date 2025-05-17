@@ -6,9 +6,19 @@ import kr.hhplus.be.server.infrastructure.order.OrderItemQueryRepository;
 import kr.hhplus.be.server.infrastructure.order.PopularProductRow;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 @RequiredArgsConstructor
 @Service
@@ -16,6 +26,54 @@ public class PopularProductService {
 
     private final OrderItemQueryRepository orderItemQueryRepository;
     private final PopularProductSummaryRepository popularProductSummaryRepository;
+
+    private final RedisTemplate<String, String> redisTemplate;
+    private static final String PRODUCT_SALES_KEY = "product:sales:daily";
+    private static final int DAYS_TO_KEEP = 3;
+    private static final int TOP_N = 5;
+    private static final long TTL_DAYS = 4;
+
+    public List<PopularProductInfo> getPopularProductsRedis() {
+        List<String> keys = IntStream.range(0, DAYS_TO_KEEP)
+                .mapToObj(i -> PRODUCT_SALES_KEY + ":" +
+                        LocalDate.now().minusDays(i).format(DateTimeFormatter.ISO_DATE))
+                .toList();
+
+        String unionKey = PRODUCT_SALES_KEY + ":temp";
+
+        if (keys.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        try {
+            redisTemplate.opsForZSet().unionAndStore(keys.get(0), keys.subList(1, keys.size()), unionKey);
+
+            Set<ZSetOperations.TypedTuple<String>> topProducts =
+                    redisTemplate.opsForZSet().reverseRangeWithScores(unionKey, 0, TOP_N - 1);
+
+            return Optional.ofNullable(topProducts)
+                    .orElse(Collections.emptySet())
+                    .stream()
+                    .map(tuple -> new PopularProductInfo(
+                            Long.parseLong(tuple.getValue()),
+                            tuple.getScore().intValue()))
+                    .toList();
+        } finally {
+            redisTemplate.delete(unionKey);
+        }
+    }
+
+    public void incrementProductSales(Long productId, int quantity) {
+        String today = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE);
+        String key = PRODUCT_SALES_KEY + ":" + today;
+
+        redisTemplate.opsForZSet().incrementScore(
+                key,
+                String.valueOf(productId),
+                quantity
+        );
+        redisTemplate.expire(key, TTL_DAYS, TimeUnit.DAYS);
+    }
 
     @Cacheable(value = "popularProducts", key = "'top5'", unless = "#result == null || #result.isEmpty()")
     public List<PopularProductInfo> getPopularProducts() {
