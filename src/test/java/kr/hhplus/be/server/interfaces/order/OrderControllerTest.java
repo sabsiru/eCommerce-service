@@ -106,7 +106,7 @@ class OrderControllerTest {
         ));
 
         Product product = new Product(101L, "상품", 10000, 0, 1L, LocalDateTime.now(), LocalDateTime.now());
-        when(productService.getProductOrThrow(101L)).thenReturn(product);
+        when(productService.getProductForUpdate(101L)).thenReturn(product);
         when(orderFacade.processOrder(any()))
                 .thenThrow(new IllegalStateException("재고가 부족합니다."));
 

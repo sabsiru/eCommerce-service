@@ -13,7 +13,7 @@ class UserTest {
         User user = new User(1L, "tester", 5000, LocalDateTime.now(), LocalDateTime.now());
 
         // When
-        user.chargePoint(1000);
+        user.charge(1000);
 
         // Then
         assertEquals(6000, user.getPoint());
@@ -25,7 +25,7 @@ class UserTest {
         User user = new User(1L, "tester", 5000, LocalDateTime.now(), LocalDateTime.now());
 
         // When
-        user.usePoint(2000);
+        user.use(2000);
 
         // Then
         assertEquals(3000, user.getPoint());
@@ -37,7 +37,7 @@ class UserTest {
         User user = new User(1L, "tester", 5000, LocalDateTime.now(), LocalDateTime.now());
 
         // When
-        user.refundPoint(1000);
+        user.refund(1000);
 
         // Then
         assertEquals(6000, user.getPoint());
@@ -49,7 +49,7 @@ class UserTest {
         User user = new User(1L, "tester", 5000, LocalDateTime.now(), LocalDateTime.now());
 
         // When & Then
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> user.chargePoint(-100));
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> user.charge(-100));
         assertEquals("충전 금액은 0보다 커야 합니다.", e.getMessage());
     }
 
@@ -59,7 +59,7 @@ class UserTest {
         User user = new User(1L, "tester", 9500000, LocalDateTime.now(), LocalDateTime.now());
 
         // When & Then
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> user.chargePoint(500001));
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> user.charge(500001));
         assertEquals("최대 충전 한도는 `10,000,000원` 입니다.", e.getMessage());
     }
 
@@ -69,7 +69,7 @@ class UserTest {
         User user = new User(1L, "tester", 5000, LocalDateTime.now(), LocalDateTime.now());
 
         // When & Then
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> user.chargePoint(1000001));
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> user.charge(1000001));
         assertEquals("1회 충전 금액은 `1,000,000원` 입니다.", e.getMessage());
     }
 
@@ -79,7 +79,7 @@ class UserTest {
         User user = new User(1L, "tester", 5000, LocalDateTime.now(), LocalDateTime.now());
 
         // When & Then
-        IllegalStateException e = assertThrows(IllegalStateException.class, () -> user.usePoint(6000));
+        IllegalStateException e = assertThrows(IllegalStateException.class, () -> user.use(6000));
         assertEquals("포인트가 부족합니다.", e.getMessage());
     }
 }

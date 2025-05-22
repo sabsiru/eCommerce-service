@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.application.product;
 
-import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.product.ProductService;
@@ -47,7 +46,7 @@ class ProductServiceIntegrationTest {
     void 상품_단건_조회_성공() {
         Product product = productRepository.save(new Product("상품", 5000, 15, 1L));
 
-        Product found = productService.getProductOrThrow(product.getId());
+        Product found = productService.getProductForUpdate(product.getId());
 
         assertThat(found.getName()).isEqualTo("상품");
         assertThat(found.getPrice()).isEqualTo(5000);
@@ -55,7 +54,7 @@ class ProductServiceIntegrationTest {
 
     @Test
     void 상품_단건_조회_실패() {
-        assertThatThrownBy(() -> productService.getProductOrThrow(999L))
+        assertThatThrownBy(() -> productService.getProductForUpdate(999L))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("productId");
     }

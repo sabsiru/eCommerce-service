@@ -40,7 +40,7 @@ class ProductServiceTest {
         when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(product));
 
         // when
-        int actualStock = productService.getStock(productId);
+        int actualStock = productService.checkStock(productId);
 
         // then
         assertEquals(expectedStock, actualStock);
@@ -101,7 +101,7 @@ class ProductServiceTest {
 
         when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(product));
 
-        Product found = productService.getProductOrThrow(productId);
+        Product found = productService.getProductForUpdate(productId);
         assertNotNull(found);
         assertEquals(productId, found.getId());
         verify(productRepository, times(1)).findByIdForUpdate(productId);
@@ -113,7 +113,7 @@ class ProductServiceTest {
         when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.empty());
 
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
-                () -> productService.getProductOrThrow(productId));
+                () -> productService.getProductForUpdate(productId));
         assertEquals("상품을 찾을 수 없습니다. productId=" + productId, e.getMessage());
         verify(productRepository, times(1)).findByIdForUpdate(productId);
     }

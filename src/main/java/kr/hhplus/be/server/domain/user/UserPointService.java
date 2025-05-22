@@ -11,21 +11,21 @@ public class UserPointService {
 
     public User chargePoint(long userId, long amount) {
         User user = getUserOrThrow(userId);
-        user.chargePoint(amount);
+        user.charge(amount);
 
         return user;
     }
 
     public User usePoint(long userId, long amount) {
         User user = getUserOrThrow(userId);
-        user.usePoint(amount);
+        user.use(amount);
 
         return user;
     }
 
     public User refundPoint(long userId, long amount) {
         User user = getUserOrThrow(userId);
-        user.refundPoint(amount);
+        user.refund(amount);
 
         return user;
     }
