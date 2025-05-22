@@ -13,13 +13,19 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
 
+
+    public Payment create(Long orderId, int amount, Long couponId) {
+        Payment payment = Payment.create(orderId, amount, couponId);
+        return paymentRepository.save(payment);
+    }
+
     public Payment initiateWithoutCoupon(Long orderId, int amount) {
         Payment payment = Payment.withoutCoupon(orderId, amount);
         return paymentRepository.save(payment);
     }
 
-    public Payment initiateWithCoupon(Long orderId, int amount, Long couponId) {
-        Payment payment = Payment.withCoupon(orderId, amount, couponId);
+    public Payment initiate(Long orderId, int amount, Long couponId) {
+        Payment payment = Payment.create(orderId, amount, couponId);
         return paymentRepository.save(payment);
     }
 

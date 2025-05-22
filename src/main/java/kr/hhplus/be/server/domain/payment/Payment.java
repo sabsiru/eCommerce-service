@@ -45,12 +45,12 @@ public class Payment {
         this.couponId = couponId;
     }
 
-    public static Payment withCoupon(Long orderId, int amount, Long couponId) {
+    public static Payment create(Long orderId, int amount, Long couponId) {
         return Payment.builder()
                 .orderId(orderId)
                 .amount(amount)
                 .couponId(couponId)
-                .status(PaymentStatus.PENDING)
+                .status(PaymentStatus.COMPLETED)
                 .build();
     }
 

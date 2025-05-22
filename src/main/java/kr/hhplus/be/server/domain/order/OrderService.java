@@ -90,5 +90,8 @@ public class OrderService {
         return order;
     }
 
-
+    public Order getOrder(Long orderId) {
+        return orderRepository.findById(orderId).orElseThrow(() ->
+                new IllegalArgumentException("주문을 찾을 수 없습니다. orderId=" + orderId));
+    }
 }
