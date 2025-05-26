@@ -53,20 +53,20 @@ class PaymentServiceTest {
         Long couponId = 500L;
 
         // 저장 후 리턴될 객체(id가 부여된 상태로 가정)
-        Payment savedPayment = Payment.withCoupon(orderId, amount, couponId);
+        Payment savedPayment = Payment.create(orderId, amount, couponId);
         // 테스트에서 id를 setter 없이 설정하려면 builder 사용을 고려하거나 설계 변경 필요
         // 테스트에서는 저장 후 객체의 값만 검증하면 되므로 id는 검증하지 않아도 무방
 
         when(paymentRepository.save(any(Payment.class))).thenReturn(savedPayment);
 
         // when
-        Payment result = paymentService.initiateWithCoupon(orderId, amount, couponId);
+        Payment result = paymentService.initiate(orderId, amount, couponId);
 
         // then
         assertNotNull(result);
         assertEquals(orderId, result.getOrderId());
         assertEquals(amount, result.getAmount());
-        assertEquals(PaymentStatus.PENDING, result.getStatus());
+        assertEquals(PaymentStatus.COMPLETED, result.getStatus());
         assertEquals(couponId, result.getCouponId());
         verify(paymentRepository).save(any(Payment.class));
     }

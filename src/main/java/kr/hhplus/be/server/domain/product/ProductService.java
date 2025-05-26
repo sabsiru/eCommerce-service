@@ -12,8 +12,14 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    public Product getProductOrThrow(long productId) {
+    @Transactional
+    public Product getProductForUpdate(long productId) {
         return productRepository.findByIdForUpdate(productId)
+                .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다. productId=" + productId));
+    }
+
+    public Product getProduct(long productId) {
+        return productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다. productId=" + productId));
     }
 
@@ -23,7 +29,7 @@ public class ProductService {
 
     @Transactional
     public Product decreaseStock(long productId, int decreaseQuantity) {
-        Product product = getProductOrThrow(productId);
+        Product product = getProductForUpdate(productId);
         product.decreaseStock(decreaseQuantity);
 
         return productRepository.save(product);
@@ -31,19 +37,19 @@ public class ProductService {
 
     @Transactional
     public Product increaseStock(long productId, int increaseQuantity) {
-        Product product = getProductOrThrow(productId);
+        Product product = getProductForUpdate(productId);
         product.increaseStock(increaseQuantity);
 
         return productRepository.save(product);
     }
 
-    public int getStock(Long productId) {
-        Product product = getProductOrThrow(productId);
+    public int checkStock(Long productId) {
+        Product product = getProduct(productId);
         return product.getStock();
     }
 
     public void checkStock(long productId, int requiredQuantity) {
-        Product product = getProductOrThrow(productId);
+        Product product = getProduct(productId);
         if (product.getStock() < requiredQuantity) {
             throw new IllegalStateException("상품 재고가 부족합니다.");
         }

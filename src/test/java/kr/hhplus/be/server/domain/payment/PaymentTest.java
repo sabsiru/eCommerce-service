@@ -22,7 +22,7 @@ class PaymentTest {
     @Test
     void 결제_생성_쿠폰_사용_포함() {
         // when
-        Payment payment = Payment.withCoupon(1L, 10000, 55L);
+        Payment payment = Payment.create(1L, 10000, 55L);
 
         // then
         assertNotNull(payment);

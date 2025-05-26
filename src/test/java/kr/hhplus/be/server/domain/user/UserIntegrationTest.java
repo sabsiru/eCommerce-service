@@ -22,7 +22,7 @@ class UserIntegrationTest {
         User saved = userRepository.save(user);
 
         // when
-        saved.chargePoint(1000);
+        saved.charge(1000);
         userRepository.save(saved);
 
         // then
@@ -37,7 +37,7 @@ class UserIntegrationTest {
 
         // expect
         assertThatThrownBy(() -> {
-            user.chargePoint(-5000);
+            user.charge(-5000);
         }).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("충전 금액은 0보다 커야 합니다.");
     }
@@ -49,7 +49,7 @@ class UserIntegrationTest {
 
         // expect
         assertThatThrownBy(() -> {
-            user.chargePoint(2_000_000);
+            user.charge(2_000_000);
         }).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("1회 충전 금액은 `1,000,000원` 입니다.");
     }
@@ -61,7 +61,7 @@ class UserIntegrationTest {
 
         // expect
         assertThatThrownBy(() -> {
-            user.chargePoint(300_000);
+            user.charge(300_000);
         }).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("최대 충전 한도는 `10,000,000원` 입니다.");
     }
@@ -72,7 +72,7 @@ class UserIntegrationTest {
         User user = userRepository.save(User.create("정상사용자", 5000));
 
         // when
-        user.usePoint(3000);
+        user.use(3000);
         userRepository.save(user);
 
         // then
@@ -86,7 +86,7 @@ class UserIntegrationTest {
         User user = userRepository.save(User.create("조회확인", 7000));
 
         // when
-        user.usePoint(2000);
+        user.use(2000);
         userRepository.save(user);
 
         // then
@@ -101,7 +101,7 @@ class UserIntegrationTest {
 
         // expect
         assertThatThrownBy(() -> {
-            user.usePoint(2000);
+            user.use(2000);
         }).isInstanceOf(IllegalStateException.class)
                 .hasMessage("포인트가 부족합니다.");
     }

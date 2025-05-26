@@ -38,6 +38,17 @@ public class CouponService {
                 .orElseThrow(() -> new IllegalArgumentException("쿠폰을 찾을 수 없습니다. couponId=" + couponId));
     }
 
+    public Long getAvailableCouponId(Long userId) {
+        if (userId == null) {
+            return null;
+        }
+        return userCouponRepository.findAllByUserId(userId)
+                .stream()
+                .findFirst()
+                .map(UserCoupon::getCouponId)
+                .orElse(null);
+    }
+
     @Transactional
     public UserCoupon issue(Long userId, Long couponId) {
         couponInventoryReader.issue(couponId, userId);
@@ -75,4 +86,8 @@ public class CouponService {
         return userCoupon;
     }
 
+    public int calculateDiscountAmount(Long couponId, int totalAmount) {
+        Coupon coupon = getCouponOrThrow(couponId);
+        return coupon.calculateDiscountAmount(totalAmount);
+    }
 }

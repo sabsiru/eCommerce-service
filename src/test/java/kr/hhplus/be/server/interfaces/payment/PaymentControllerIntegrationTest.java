@@ -33,7 +33,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
 class PaymentControllerIntegrationTest {
 
     @Autowired
@@ -76,8 +75,8 @@ class PaymentControllerIntegrationTest {
         User user = userRepository.save(User.create("결제유저", 50000));
         Product product = productRepository.save(new Product("상품", 25000, 10, 1L));
         Order order = createOrder(user.getId(), product, 2);
-        orderRepository.save(order);
 
+        int expectedAmount = order.getTotalAmount();
         PaymentRequest request = new PaymentRequest(order.getTotalAmount());
 
         mockMvc.perform(patch("/payments/{orderId}/pay", order.getId())
@@ -86,6 +85,12 @@ class PaymentControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status", is("COMPLETED")))
                 .andExpect(jsonPath("$.amount", is(50000)));
+
+        User updatedUser = userRepository.findById(user.getId()).orElseThrow();
+        assertThat(updatedUser.getPoint()).isEqualTo(50000 - expectedAmount);
+
+        Product updatedProduct = productRepository.findById(product.getId()).orElseThrow();
+        assertThat(updatedProduct.getStock()).isEqualTo(8); // 10 - 2
     }
 
     @Test
@@ -105,7 +110,7 @@ class PaymentControllerIntegrationTest {
 
         PaymentRequest request = new PaymentRequest(20000);
 
-        mockMvc.perform(patch("/payments/{orderId}/pay", order.getId(), coupon.getId())
+        mockMvc.perform(patch("/payments/{orderId}/pay", order.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -177,9 +182,7 @@ class PaymentControllerIntegrationTest {
         Order order = createOrder(user.getId(), product, 1);
 
 
-        // 결제
-        int expectedPayAmount = 16000;
-        Payment payment = paymentFacade.processPayment(order.getId(), expectedPayAmount);
+        Payment payment = paymentFacade.processPayment(order.getId(), order.getTotalAmount());
         Long paymentId = payment.getId();
 
         // when - 환불

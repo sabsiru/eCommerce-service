@@ -49,7 +49,7 @@ public class User {
                 .build();
     }
 
-    public void chargePoint(long amount) {
+    public void charge(long amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("충전 금액은 0보다 커야 합니다.");
         }
@@ -62,7 +62,7 @@ public class User {
         this.point += amount;
     }
 
-    public void usePoint(long amount) {
+    public void use(long amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("사용 금액은 0보다 커야 합니다.");
         }
@@ -72,7 +72,7 @@ public class User {
         this.point -= amount;
     }
 
-    public void refundPoint(long amount) {
+    public void refund(long amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("환불 금액은 0보다 커야 합니다.");
         }
