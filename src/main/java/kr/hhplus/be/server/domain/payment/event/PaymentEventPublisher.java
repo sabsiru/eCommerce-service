@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.application.payment.event;
+package kr.hhplus.be.server.domain.payment.event;
 
 import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderService;
@@ -22,8 +22,7 @@ public class PaymentEventPublisher {
         PaymentCompletedEvent event = new PaymentCompletedEvent(
                 payment,
                 order,
-                orderItems,
-                "payment_system"
+                orderItems
         );
 
         eventPublisher.publishEvent(event);

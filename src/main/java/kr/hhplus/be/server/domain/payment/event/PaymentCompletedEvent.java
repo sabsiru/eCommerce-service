@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.application.payment.event;
+package kr.hhplus.be.server.domain.payment.event;
 
 import kr.hhplus.be.server.domain.order.Order;
 import kr.hhplus.be.server.domain.order.OrderItem;
@@ -9,17 +9,14 @@ import org.springframework.context.ApplicationEvent;
 import java.util.List;
 
 @Getter
-public class PaymentCompletedEvent extends ApplicationEvent {
+public class PaymentCompletedEvent {
     private final Payment payment;
     private final Order order;
     private final List<OrderItem> orderItems;
-    private final String source;
 
-    public PaymentCompletedEvent(Payment payment, Order order, List<OrderItem> orderItems, String source) {
-        super(payment);
+    public PaymentCompletedEvent(Payment payment, Order order, List<OrderItem> orderItems) {
         this.payment = payment;
         this.order = order;
         this.orderItems = orderItems;
-        this.source = source;
     }
 }

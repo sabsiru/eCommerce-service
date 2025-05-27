@@ -1,7 +1,6 @@
-package kr.hhplus.be.server.application.coupon.event;
+package kr.hhplus.be.server.domain.coupon.event;
 
 import kr.hhplus.be.server.domain.coupon.CouponService;
-import kr.hhplus.be.server.domain.coupon.event.CouponValidateEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;

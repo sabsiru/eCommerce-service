@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.infrastructure.payment;
 
-import kr.hhplus.be.server.application.payment.event.PaymentCompletedEvent;
+import kr.hhplus.be.server.domain.payment.event.PaymentCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.application.payment;
 
-import kr.hhplus.be.server.application.payment.event.PaymentEventPublisher;
 import kr.hhplus.be.server.application.user.UserPointFacade;
 import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.coupon.event.CouponEventPublisher;
@@ -10,11 +9,10 @@ import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentService;
+import kr.hhplus.be.server.domain.payment.event.PaymentEventPublisher;
 import kr.hhplus.be.server.domain.point.event.PointEventPublisher;
 import kr.hhplus.be.server.domain.point.event.PointUseEvent;
 import kr.hhplus.be.server.domain.product.ProductService;
-import kr.hhplus.be.server.domain.product.event.StockDecreaseEvent;
-import kr.hhplus.be.server.domain.product.event.StockEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +28,6 @@ public class PaymentFacade {
     private final CouponService couponService;
     private final ProductService productService;
     private final PaymentEventPublisher paymentEventPublisher;
-    private final StockEventPublisher stockEventPublisher;
     private final CouponEventPublisher couponEventPublisher;
     private final PointEventPublisher pointEventPublisher;
 
@@ -39,7 +36,6 @@ public class PaymentFacade {
         Order order = orderService.getOrderOrThrowPaid(orderId);
         Long couponId = couponService.getAvailableCouponId(order.getUserId());
 
-        stockEventPublisher.publishStockDecreased(new StockDecreaseEvent(orderId));
         Payment payment = calculateDiscountAndCreatePayment(order.getUserId(), orderId, couponId, order.getTotalAmount(), paymentAmount);
 
         order = orderService.pay(orderId);

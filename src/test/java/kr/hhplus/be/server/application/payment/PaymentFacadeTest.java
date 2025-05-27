@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.payment;
 
-import kr.hhplus.be.server.application.payment.event.PaymentEventPublisher;
+import kr.hhplus.be.server.domain.payment.event.PaymentEventPublisher;
 import kr.hhplus.be.server.application.user.UserPointFacade;
 import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.coupon.event.CouponEventPublisher;
@@ -14,8 +14,6 @@ import kr.hhplus.be.server.domain.payment.PaymentStatus;
 import kr.hhplus.be.server.domain.point.event.PointEventPublisher;
 import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductService;
-import kr.hhplus.be.server.domain.product.event.StockDecreaseEvent;
-import kr.hhplus.be.server.domain.product.event.StockEventPublisher;
 import kr.hhplus.be.server.domain.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,8 +50,6 @@ class PaymentFacadeTest {
 
     @Mock
     private PaymentEventPublisher paymentEventPublisher;
-    @Mock
-    private StockEventPublisher stockEventPublisher;
     @Mock
     private CouponEventPublisher couponEventPublisher;
     @Mock
@@ -92,7 +88,6 @@ class PaymentFacadeTest {
         assertEquals(totalAmount, result.getAmount());
         assertNull(result.getCouponId());
 
-        verify(stockEventPublisher).publishStockDecreased(any(StockDecreaseEvent.class));
         verify(pointEventPublisher).publishPointUsed(any());
         verify(paymentEventPublisher).publishPaymentCompleted(eq(mockPayment), eq(order));
         verify(orderService).pay(orderId);
@@ -126,7 +121,6 @@ class PaymentFacadeTest {
         assertEquals(PaymentStatus.COMPLETED, result.getStatus());
         assertEquals(discountedAmount, result.getAmount());
 
-        verify(stockEventPublisher).publishStockDecreased(any(StockDecreaseEvent.class));
         verify(couponEventPublisher).publishCouponValidate(any(CouponValidateEvent.class));
         verify(paymentEventPublisher).publishPaymentCompleted(eq(mockPayment), eq(order));
         verify(orderService).pay(orderId);
@@ -134,23 +128,29 @@ class PaymentFacadeTest {
         verify(paymentService).create(orderId, discountedAmount, couponId);
     }
 
-    @Test
-    void 결제_실패_재고_부족() {
-        // given
-        when(orderService.getOrderOrThrowPaid(orderId)).thenReturn(order);
+@Test
+void 결제_실패_재고_부족() {
+    // given
+    when(orderService.getOrderOrThrowPaid(orderId)).thenReturn(order);
+    when(couponService.getAvailableCouponId(order.getUserId())).thenReturn(null);
 
-        doAnswer(invocation -> {
-            StockDecreaseEvent event = invocation.getArgument(0);
-            throw new IllegalStateException("상품 재고가 부족합니다.");
-        }).when(stockEventPublisher).publishStockDecreased(any(StockDecreaseEvent.class));
+    Payment mockPayment = Payment.create(orderId, totalAmount, null);
+    when(paymentService.create(orderId, totalAmount, null)).thenReturn(mockPayment);
 
-        // when & then
-        IllegalStateException e = assertThrows(IllegalStateException.class,
-                () -> paymentFacade.processPayment(orderId, totalAmount));
-        assertEquals("상품 재고가 부족합니다.", e.getMessage());
+    when(orderService.pay(orderId)).thenReturn(order);
 
-        verify(stockEventPublisher).publishStockDecreased(any(StockDecreaseEvent.class));
-    }
+    doAnswer(invocation -> {
+        throw new IllegalStateException("상품 재고가 부족합니다.");
+    }).when(paymentEventPublisher).publishPaymentCompleted(any(), any());
+
+    // when & then
+    IllegalStateException e = assertThrows(IllegalStateException.class,
+            () -> paymentFacade.processPayment(orderId, totalAmount));
+    assertEquals("상품 재고가 부족합니다.", e.getMessage());
+
+    // PaymentCompletedEvent
+    verify(paymentEventPublisher).publishPaymentCompleted(any(), any());
+}
 
     @Test
     void 결제_실패_포인트부족_쿠폰없음() {
@@ -167,7 +167,6 @@ class PaymentFacadeTest {
                 () -> paymentFacade.processPayment(orderId, totalAmount));
         assertEquals("포인트 부족", e.getMessage());
 
-        verify(stockEventPublisher).publishStockDecreased(any(StockDecreaseEvent.class));
         verify(pointEventPublisher).publishPointUsed(any());
     }
 
@@ -176,12 +175,11 @@ class PaymentFacadeTest {
         Payment refunded = Payment.withoutCoupon(orderId, totalAmount);
         refunded.complete();
         refunded.refund();
-        Long paymentId = refunded.getId();  // ★ paymentId를 꺼냅니다.
+        Long paymentId = refunded.getId();
 
         when(orderService.getOrderOrThrowCancel(orderId)).thenReturn(order);
-        // ↓ 새로운 stub: 이 리스트를 돌면서 increaseStock 호출이 일어나야 합니다
         List<OrderItem> dummyItems = List.of(
-                new OrderItem(order, productId, quantity, /*orderPrice*/ 10000)
+                new OrderItem(order, productId, quantity, 10000)
         );
 
         when(orderService.getOrderItems(orderId)).thenReturn(dummyItems);
@@ -202,7 +200,7 @@ class PaymentFacadeTest {
 
     @Test
     void 환불_실패_결제미완료일때() {
-        // given: paymentService.refundPayment 호출 시 결제 미완료 예외 던지기
+        // given
         when(paymentService.refund(orderId))
                 .thenThrow(new IllegalStateException("결제가 완료되지 않은 주문입니다."));
 

@@ -1,6 +1,6 @@
-package kr.hhplus.be.server.application.user;
+package kr.hhplus.be.server.domain.point.event;
 
-import kr.hhplus.be.server.domain.point.event.PointUseEvent;
+import kr.hhplus.be.server.application.user.UserPointFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;

@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.interfaces.dummy;
 
-import kr.hhplus.be.server.application.payment.event.PaymentCompletedEvent;
+import kr.hhplus.be.server.domain.payment.event.PaymentCompletedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
