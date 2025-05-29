@@ -39,6 +39,7 @@ spring:
 
 topic:
   payment-completed: outside.payment.v1.completed
+  coupon-issued: inside.coupon.v1.issued
 logging:
   level:
     org.hibernate.type.descriptor.sql.BasicBinder: trace
