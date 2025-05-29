@@ -28,6 +28,9 @@ class CouponConcurrencyTest {
     @Autowired
     private CouponService couponService;
 
+    @Autowired
+    private CouponFacade couponFacade;
+
     @Test
     void 여러_유저가_동시_쿠폰_발급시_1건발급_테스트() throws InterruptedException {
         // given
@@ -43,7 +46,7 @@ class CouponConcurrencyTest {
 
             executorService.submit(() -> {
                 try {
-                    couponService.issue(userId, coupon.getId());
+                    couponFacade.issue(userId, coupon.getId());
                 } catch (Exception e) {
                     // 무시
                 } finally {
