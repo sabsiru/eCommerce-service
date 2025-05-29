@@ -87,7 +87,6 @@ class PaymentFacadeIntegrationTest {
         UserCoupon uc = userCouponRepository.save(
                 UserCoupon.issue(user.getId(), coupon.getId())
         );
-        System.out.println("uc.getId() = " + uc.getId());
         List<OrderLine> lines = List.of(new OrderLine(product.getId(), 1, product.getPrice()));
         Order order = orderService.create(user.getId(), lines);
 
