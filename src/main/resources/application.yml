@@ -24,12 +24,26 @@ spring:
     redis:
       host: localhost
       port: 6379
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: '*'
+      group-id: payment-service
+      auto-offset-reset: earliest
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
+topic:
+  payment-completed: outside.payment.v1.completed
+  coupon-issued: inside.coupon.v1.issued
 logging:
   level:
     org.hibernate.type.descriptor.sql.BasicBinder: trace
     org.springframework.transaction: DEBUG
-
 
 ---
 spring.config.activate.on-profile: local, test

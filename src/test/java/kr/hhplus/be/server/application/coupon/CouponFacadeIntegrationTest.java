@@ -27,10 +27,14 @@ class CouponFacadeIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private CouponService couponService;
+
     @Test
     void 쿠폰_정상_발급() {
         User user = userRepository.save(User.create("사용자", 0));
-        Coupon coupon = couponRepository.save(Coupon.create("10% 할인", 10, 3000, LocalDateTime.now().plusDays(3), 100));
+
+        Coupon coupon = couponService.create("10% 할인", 10, 3000, LocalDateTime.now().plusDays(3), 100);
 
         UserCoupon issued = couponFacade.issue(user.getId(), coupon.getId());
 
@@ -43,28 +47,29 @@ class CouponFacadeIntegrationTest {
     void 쿠폰_발급_수량_초과시_예외() {
         User user1 = userRepository.save(User.create("사용자1", 0));
         User user2 = userRepository.save(User.create("사용자2", 0));
-        Coupon coupon = couponRepository.save(Coupon.create("한정쿠폰", 50, 5000, LocalDateTime.now().plusDays(3), 1));
+
+        Coupon coupon = couponService.create("한정쿠폰", 50, 5000, LocalDateTime.now().plusDays(3), 1);
 
         couponFacade.issue(user1.getId(), coupon.getId());
 
         assertThatThrownBy(() -> couponFacade.issue(user2.getId(), coupon.getId()))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("쿠폰 발급 수량이 모두 소진되었습니다");
+                .hasMessageContaining("발급이 종료된 쿠폰입니다.");
     }
 
     @Test
     void 만료된_쿠폰_발급시_예외() {
         User user = userRepository.save(User.create("사용자", 0));
-        Coupon expiredCoupon = couponRepository.save(Coupon.create("만료쿠폰", 10, 2000, LocalDateTime.now().minusDays(1), 10));
+        Coupon coupon = couponService.create("만료쿠폰", 10, 2000, LocalDateTime.now().minusDays(1), 10);
 
-        assertThatThrownBy(() -> couponFacade.issue(user.getId(), expiredCoupon.getId()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("만료된 쿠폰입니다");
+        assertThatThrownBy(() -> couponFacade.issue(user.getId(), coupon.getId()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("발급이 종료된 쿠폰입니다.");
     }
 
     @Test
     void 쿠폰_단건_조회() {
-        Coupon coupon = couponRepository.save(Coupon.create("단건조회", 15, 3000, LocalDateTime.now().plusDays(3), 20));
+        Coupon coupon = couponService.create("단건조회", 15, 3000, LocalDateTime.now().plusDays(3), 20);
 
         Coupon found = couponFacade.getCouponOrThrow(coupon.getId());
 
@@ -79,9 +84,7 @@ class CouponFacadeIntegrationTest {
         User user1 = userRepository.save(User.create("사용자1", 0));
         User user2 = userRepository.save(User.create("사용자2", 0));
 
-        Coupon coupon = couponRepository.save(
-                Coupon.create("단일발급쿠폰", 10, 5000, LocalDateTime.now().plusDays(1), 1)
-        );
+        Coupon coupon = couponService.create("단일발급쿠폰", 10, 5000, LocalDateTime.now().plusDays(1), 1);
 
         // when
         UserCoupon issuedCoupon = couponFacade.issue(user1.getId(), coupon.getId());
@@ -92,6 +95,6 @@ class CouponFacadeIntegrationTest {
                 couponFacade.issue(user2.getId(), coupon.getId())
         );
 
-        assertThat(exception.getMessage()).contains("쿠폰 발급 수량이 모두 소진되었습니다.");
+        assertThat(exception.getMessage()).contains("발급이 종료된 쿠폰입니다.");
     }
 }

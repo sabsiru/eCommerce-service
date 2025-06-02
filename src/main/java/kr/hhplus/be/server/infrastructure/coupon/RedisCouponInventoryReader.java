@@ -44,7 +44,7 @@ public class RedisCouponInventoryReader implements CouponInventoryReader {
                String issuedUsersKey = String.format(ISSUED_USERS_KEY, couponId);
 
                if (!operations.hasKey(inventoryKey)) {
-                   throw new IllegalStateException("만료된 쿠폰입니다.");
+                   throw new IllegalStateException("발급이 종료된 쿠폰입니다.");
                }
 
                if (Boolean.TRUE.equals(operations.opsForSet().isMember(issuedUsersKey, userId.toString()))) {

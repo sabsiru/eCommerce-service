@@ -21,6 +21,14 @@ public class CouponController {
         return couponFacade.issue(userId, couponId);
     }
 
+    @PostMapping("/{userId}/issue-async")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void issueCouponAsync(@PathVariable Long userId,
+                                 @RequestParam Long couponId) {
+        couponFacade.issueAsync(userId, couponId);
+    }
+
+
     @GetMapping
     public Coupon getCoupon(@RequestParam Long couponId) {
         return couponFacade.getCouponOrThrow(couponId);
