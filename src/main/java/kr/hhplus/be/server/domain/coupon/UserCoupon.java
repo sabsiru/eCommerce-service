@@ -24,6 +24,7 @@ public class UserCoupon {
     private Long couponId;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 10)
     private UserCouponStatus status;
 
     private LocalDateTime issuedAt;
@@ -40,7 +41,7 @@ public class UserCoupon {
         this.usedAt = usedAt;
     }
 
-    public static UserCoupon issue(Long userId, Long couponId) {
+    public static UserCoupon issue(Long couponId, Long userId) {
         return UserCoupon.builder()
                 .userId(userId)
                 .couponId(couponId)

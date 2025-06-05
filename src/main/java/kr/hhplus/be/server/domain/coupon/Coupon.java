@@ -24,6 +24,7 @@ public class Coupon {
     private int maxDiscountAmount;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 10)
     private CouponStatus status;
 
     private LocalDateTime expirationAt;
@@ -128,5 +129,17 @@ public class Coupon {
                 this.limitCount,
                 this.issuedCount
         );
+    }
+
+    public void updateLimitCount(int remaining) {
+        if (remaining < 0) {
+            throw new IllegalArgumentException("남은 발급 수량은 0 이상이어야 합니다.");
+        }
+        this.limitCount = remaining;
+        if (this.issuedCount >= this.limitCount) {
+            this.status = CouponStatus.EXPIRED;
+        } else {
+            this.status = CouponStatus.ACTIVE;
+        }
     }
 }

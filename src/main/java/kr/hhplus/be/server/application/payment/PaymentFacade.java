@@ -9,7 +9,7 @@ import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.PaymentService;
-import kr.hhplus.be.server.domain.payment.event.PaymentCompletedMessage;
+import kr.hhplus.be.server.domain.payment.event.PaymentCompletedProducer;
 import kr.hhplus.be.server.domain.point.event.PointEventPublisher;
 import kr.hhplus.be.server.domain.point.event.PointUseEvent;
 import kr.hhplus.be.server.domain.product.ProductService;
@@ -29,7 +29,7 @@ public class PaymentFacade {
     private final ProductService productService;
     private final CouponEventPublisher couponEventPublisher;
     private final PointEventPublisher pointEventPublisher;
-    private final PaymentCompletedMessage paymentCompletedMessage;
+    private final PaymentCompletedProducer paymentCompletedProducer;
 
     @Transactional
     public Payment processPayment(Long orderId, int paymentAmount) {
@@ -39,7 +39,7 @@ public class PaymentFacade {
         Payment payment = calculateDiscountAndCreatePayment(order.getUserId(), orderId, couponId, order.getTotalAmount(), paymentAmount);
 
         order = orderService.pay(orderId);
-        paymentCompletedMessage.send(payment, order);
+        paymentCompletedProducer.send(payment, order);
 
         return payment;
     }
