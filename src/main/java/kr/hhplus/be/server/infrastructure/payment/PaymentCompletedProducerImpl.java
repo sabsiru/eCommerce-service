@@ -5,7 +5,7 @@ import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.payment.Payment;
 import kr.hhplus.be.server.domain.payment.event.PaymentCompletedEvent;
-import kr.hhplus.be.server.domain.payment.event.PaymentCompletedMessage;
+import kr.hhplus.be.server.domain.payment.event.PaymentCompletedProducer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -15,7 +15,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class PaymentCompletedMessageHandler implements PaymentCompletedMessage {
+public class PaymentCompletedProducerImpl implements PaymentCompletedProducer {
     private final KafkaTemplate<String, PaymentCompletedEvent> kafkaTemplate;
     private final OrderService orderService;
 
@@ -24,7 +24,6 @@ public class PaymentCompletedMessageHandler implements PaymentCompletedMessage {
 
     @Override
     public void send(Payment payment, Order order) {
-        System.out.println("카프카 메시지 발송 시도: 주문ID=" + order.getId() + ", 토픽=" + topic);
         List<OrderItem> items = orderService.getOrderItems(order.getId());
         PaymentCompletedEvent event = new PaymentCompletedEvent(payment, order, items);
         kafkaTemplate.send(
@@ -32,6 +31,5 @@ public class PaymentCompletedMessageHandler implements PaymentCompletedMessage {
                 payment.getId().toString(),
                 event
         );
-        System.out.println("카프카 메시지 발송 완료");
     }
 }

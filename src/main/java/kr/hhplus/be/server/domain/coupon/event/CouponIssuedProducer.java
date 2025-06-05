@@ -1,5 +1,5 @@
 package kr.hhplus.be.server.domain.coupon.event;
 
-public interface CouponIssuedMessageSender {
+public interface CouponIssuedProducer {
     void send(CouponIssuedMessage message);
 }

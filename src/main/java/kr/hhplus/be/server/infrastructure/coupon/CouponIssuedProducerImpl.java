@@ -2,7 +2,7 @@ package kr.hhplus.be.server.infrastructure.coupon;
 
 
 import kr.hhplus.be.server.domain.coupon.event.CouponIssuedMessage;
-import kr.hhplus.be.server.domain.coupon.event.CouponIssuedMessageSender;
+import kr.hhplus.be.server.domain.coupon.event.CouponIssuedProducer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class CouponIssuedMessageHandler implements CouponIssuedMessageSender {
+public class CouponIssuedProducerImpl implements CouponIssuedProducer {
 
     private final KafkaTemplate<String, CouponIssuedMessage> kafkaTemplate;
 

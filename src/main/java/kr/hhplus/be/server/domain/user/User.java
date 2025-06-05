@@ -42,6 +42,7 @@ public class User {
         this.updatedAt = updatedAt;
     }
 
+    @Builder
     public static User create(String name, int initialPoint) {
         return User.builder()
                 .name(name)
