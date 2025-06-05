@@ -55,7 +55,6 @@ class UserPointConcurrencyTest {
         // when
         User updated = userRepository.findById(user.getId()).orElseThrow();
         List<PointHistory> histories = pointHistoryRepository.findByUserId(user.getId());
-        System.out.println("updated.getPoint() = " + updated.getPoint());
         // then
         assertThat(updated.getPoint()).isBetween(0, initialPoint);
         assertThat(histories.size()).isLessThanOrEqualTo(initialPoint/amount);
@@ -91,9 +90,6 @@ class UserPointConcurrencyTest {
         // then
         User updatedUser = userRepository.findById(user.getId()).orElseThrow();
         List<PointHistory> histories = pointHistoryRepository.findByUserId(user.getId());
-
-        System.out.println("▶ 최종 포인트: " + updatedUser.getPoint());
-        System.out.println("▶ 히스토리 수: " + histories.size());
 
         assertThat(updatedUser.getPoint()).isLessThanOrEqualTo(max_amount);
         assertThat(histories.size()).isLessThanOrEqualTo(2);
