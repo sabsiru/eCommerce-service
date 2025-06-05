@@ -3,6 +3,7 @@ package kr.hhplus.be.server.domain.dummy;
 import jakarta.persistence.EntityManagerFactory;
 import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.product.Product;
+import kr.hhplus.be.server.domain.user.User;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
@@ -32,7 +33,7 @@ public class DummyDataInsertService {
                     .supply(field("productId"), () -> ThreadLocalRandom.current().nextLong(1L, 1001L)) // 1~101 포함
                     .supply(field("quantity"), () -> ThreadLocalRandom.current().nextInt(1, 10))
                     .supply(field("createdAt"), () -> {
-                        LocalDateTime base = LocalDateTime.now().minusDays(3);
+                        LocalDateTime base = LocalDateTime.now().minusDays(1);
                         return base.plusMinutes(ThreadLocalRandom.current().nextInt(0, 4320));
                     })
                     .create();
@@ -75,5 +76,29 @@ public class DummyDataInsertService {
         tx.commit();
         session.close();
     }
+
+    public void bulkInsertUsers(int count) {
+        SessionFactory sessionFactory = emf.unwrap(SessionFactory.class);
+        StatelessSession session = sessionFactory.openStatelessSession();
+        Transaction tx = session.beginTransaction();
+
+        for (int i = 0; i < count; i++) {
+            int finalI = i;
+            User user = Instancio.of(User.class)
+                    .supply(field("name"), () -> "user-" + finalI)
+                    .supply(field("point"), () -> ThreadLocalRandom.current().nextInt(0, 100_000))
+                    .create();
+
+            session.insert(user);
+
+            if (i % 1000 == 0) {
+                System.out.println("Inserted User: " + i);
+            }
+        }
+
+        tx.commit();
+        session.close();
+    }
+
 
 }
