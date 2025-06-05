@@ -27,6 +27,7 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
+      enable-auto-commit: false
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
@@ -36,6 +37,8 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    listener:
+      ack-mode: manual
 
 topic:
   payment-completed: outside.payment.v1.completed
