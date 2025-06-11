@@ -17,18 +17,20 @@ public class CouponService {
 
     @Transactional
     public Coupon create(String name, int discountRate,
-                         int maxDiscountAmount, LocalDateTime expirationAt, int limitCount) {
+                         int maxDiscountAmount, String expirationAt, int limitCount) {
+
+        LocalDateTime expirationDateTime = LocalDateTime.now().plusDays(Long.parseLong(expirationAt));
         Coupon coupon = Coupon.create(
                 name,
                 discountRate,
                 maxDiscountAmount,
-                expirationAt,
+                expirationDateTime,
                 limitCount
         );
 
         Coupon saved = couponRepository.save(coupon);
 
-        couponInventoryReader.initialize(saved.getId(), limitCount, expirationAt);
+        couponInventoryReader.initialize(saved.getId(), limitCount, expirationDateTime);
 
         return saved;
     }
@@ -50,12 +52,11 @@ public class CouponService {
     }
 
     @Transactional
-    public UserCoupon issue(Long userId, Long couponId) {
+    public void issue(Long couponId, Long userId) {
         couponInventoryReader.issue(couponId, userId);
-
         try {
-            UserCoupon userCoupon = UserCoupon.issue(userId, couponId);
-            return userCouponRepository.save(userCoupon);
+            UserCoupon userCoupon = UserCoupon.issue(couponId, userId);
+            userCouponRepository.save(userCoupon);
         } catch (Exception e) {
             couponInventoryReader.release(couponId, userId);
             throw e;
@@ -89,5 +90,11 @@ public class CouponService {
     public int calculateDiscountAmount(Long couponId, int totalAmount) {
         Coupon coupon = getCouponOrThrow(couponId);
         return coupon.calculateDiscountAmount(totalAmount);
+    }
+
+    public void updateLimitCount(Long id, int remaining) {
+        Coupon coupon = getCouponOrThrow(id);
+        coupon.updateLimitCount(remaining);
+        couponRepository.save(coupon);
     }
 }

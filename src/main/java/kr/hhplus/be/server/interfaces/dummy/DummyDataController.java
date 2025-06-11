@@ -26,4 +26,10 @@ public class DummyDataController {
         dummyDataInsertService.bulkInsertProducts(count);
         return ResponseEntity.ok("삽입 완료 : " + count);
     }
+
+    @PostMapping("/insertUser")
+    public ResponseEntity<String> insertUser(@RequestParam(defaultValue = "1000") int count) {
+        dummyDataInsertService.bulkInsertUsers(count);
+        return ResponseEntity.ok("삽입 완료 : " + count);
+    }
 }

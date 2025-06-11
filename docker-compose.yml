@@ -43,6 +43,26 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     volumes:
       - ./data/kafka/:/var/lib/kafka/data
+  influxdb:
+    image: influxdb:1.8
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUXDB_DB=k6
+    volumes:
+      - influxdb:/var/lib/influxdb
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - influxdb
+
+volumes:
+  influxdb:
 
 networks:
   default:

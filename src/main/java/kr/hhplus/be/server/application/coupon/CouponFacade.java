@@ -5,7 +5,7 @@ import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
 import kr.hhplus.be.server.domain.coupon.event.CouponIssuedMessage;
-import kr.hhplus.be.server.domain.coupon.event.CouponIssuedMessageSender;
+import kr.hhplus.be.server.domain.coupon.event.CouponIssuedProducer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,21 +14,26 @@ import org.springframework.stereotype.Service;
 public class CouponFacade {
 
     private final CouponService couponService;
-    private final CouponIssuedMessageSender couponIssuedMessageSender;
+    private final CouponIssuedProducer couponIssuedProducer;
 
-    public UserCoupon issue(Long userId, Long couponId) {
+    public void issue(Long userId, Long couponId) {
 
-        return couponService.issue(userId, couponId);
+         couponService.issue(userId, couponId);
     }
 
-    public void issueAsync(Long userId, Long couponId) {
-        CouponIssuedMessage couponIssuedMessage = new CouponIssuedMessage(userId, couponId);
-        couponIssuedMessageSender.send(couponIssuedMessage);
+    public void issueAsync( Long couponId, Long userId) {
+        CouponIssuedMessage couponIssuedMessage = new CouponIssuedMessage(couponId,userId);
+        couponIssuedProducer.send(couponIssuedMessage);
     }
 
     @Transactional
     public Coupon getCouponOrThrow(Long couponId) {
 
         return couponService.getCouponOrThrow(couponId);
+    }
+
+    public void create(String name, int discountRate,
+                       int maxDiscountAmount, String expirationAt, int limitCount) {
+        couponService.create(name, discountRate, maxDiscountAmount, expirationAt, limitCount);
     }
 }
