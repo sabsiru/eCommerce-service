@@ -17,20 +17,19 @@ public class CouponService {
 
     @Transactional
     public Coupon create(String name, int discountRate,
-                         int maxDiscountAmount, String expirationAt, int limitCount) {
+                         int maxDiscountAmount, LocalDateTime expirationAt, int limitCount) {
 
-        LocalDateTime expirationDateTime = LocalDateTime.now().plusDays(Long.parseLong(expirationAt));
         Coupon coupon = Coupon.create(
                 name,
                 discountRate,
                 maxDiscountAmount,
-                expirationDateTime,
+                expirationAt,
                 limitCount
         );
 
         Coupon saved = couponRepository.save(coupon);
 
-        couponInventoryReader.initialize(saved.getId(), limitCount, expirationDateTime);
+        couponInventoryReader.initialize(saved.getId(), limitCount, expirationAt);
 
         return saved;
     }

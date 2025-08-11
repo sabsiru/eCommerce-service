@@ -3,11 +3,12 @@ package kr.hhplus.be.server.application.coupon;
 import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.CouponService;
-import kr.hhplus.be.server.domain.coupon.UserCoupon;
 import kr.hhplus.be.server.domain.coupon.event.CouponIssuedMessage;
 import kr.hhplus.be.server.domain.coupon.event.CouponIssuedProducer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 @Service
@@ -33,7 +34,7 @@ public class CouponFacade {
     }
 
     public void create(String name, int discountRate,
-                       int maxDiscountAmount, String expirationAt, int limitCount) {
+                       int maxDiscountAmount, LocalDateTime expirationAt, int limitCount) {
         couponService.create(name, discountRate, maxDiscountAmount, expirationAt, limitCount);
     }
 }

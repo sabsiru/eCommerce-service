@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/coupons")
@@ -34,7 +36,7 @@ public class CouponController {
     public void createCoupon(@RequestParam String name,
                                @RequestParam int discountRate,
                                @RequestParam int maxDiscountAmount,
-                               @RequestParam String expirationAt,
+                               @RequestParam LocalDateTime expirationAt,
                                @RequestParam int limitCount) {
         couponFacade.create(name, discountRate, maxDiscountAmount, expirationAt, limitCount);
     }
