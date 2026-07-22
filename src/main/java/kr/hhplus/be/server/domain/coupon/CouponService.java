@@ -51,11 +51,11 @@ public class CouponService {
     }
 
     @Transactional
-    public void issue(Long couponId, Long userId) {
+    public UserCoupon issue(Long userId, Long couponId) {
         couponInventoryReader.issue(couponId, userId);
         try {
             UserCoupon userCoupon = UserCoupon.issue(couponId, userId);
-            userCouponRepository.save(userCoupon);
+            return userCouponRepository.save(userCoupon);
         } catch (Exception e) {
             couponInventoryReader.release(couponId, userId);
             throw e;
