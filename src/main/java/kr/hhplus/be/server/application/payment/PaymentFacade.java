@@ -39,6 +39,12 @@ public class PaymentFacade {
         Payment payment = calculateDiscountAndCreatePayment(order.getUserId(), orderId, couponId, order.getTotalAmount(), paymentAmount);
 
         order = orderService.pay(orderId);
+
+        List<OrderItem> items = orderService.getOrderItems(orderId);
+        for (OrderItem item : items) {
+            productService.decreaseStock(item.getProductId(), item.getQuantity());
+        }
+
         paymentCompletedProducer.send(payment, order);
 
         return payment;
@@ -52,7 +58,7 @@ public class PaymentFacade {
         userPointFacade.refundPoint(order.getUserId(), refundPayment.getAmount(), order.getId());
 
         if (refundPayment.getCouponId() != null) {
-            couponService.refund(refundPayment.getCouponId());
+            couponService.refundByCoupon(order.getUserId(), refundPayment.getCouponId());
         }
 
         List<OrderItem> items = orderService.getOrderItems(refundPayment.getOrderId());

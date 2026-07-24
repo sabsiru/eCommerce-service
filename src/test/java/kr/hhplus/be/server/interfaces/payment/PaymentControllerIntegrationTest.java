@@ -99,7 +99,7 @@ class PaymentControllerIntegrationTest {
         User user = userRepository.save(User.create("쿠폰유저", 100000));
         Product product = productRepository.save(new Product("상품", 20000, 10, 1L));
         Coupon coupon = couponRepository.save(Coupon.create("20%할인", 20, 5000, LocalDateTime.now().plusDays(3), 100));
-        userCouponRepository.save(UserCoupon.issue(user.getId(), coupon.getId()));
+        userCouponRepository.save(UserCoupon.issue(coupon.getId(), user.getId()));
 
         Order order = createOrder(user.getId(), product, 1);
 
@@ -177,7 +177,7 @@ class PaymentControllerIntegrationTest {
         User user = userRepository.save(User.create("환불유저", 100000));
         Product product = productRepository.save(new Product("상품", 20000, 10, 1L));
         Coupon coupon = couponRepository.save(Coupon.create("20%할인", 20, 5000, LocalDateTime.now().plusDays(3), 100));
-        UserCoupon userCoupon = userCouponRepository.save(UserCoupon.issue(user.getId(), coupon.getId()));
+        UserCoupon userCoupon = userCouponRepository.save(UserCoupon.issue(coupon.getId(), user.getId()));
 
         Order order = createOrder(user.getId(), product, 1);
 
