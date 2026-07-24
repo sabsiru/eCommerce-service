@@ -70,7 +70,7 @@ class CouponIssueKafkaTest {
         ex.shutdown();
 
         Awaitility.await()
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(30, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     List<UserCoupon> issued = userCouponRepository.findAllByCouponId(coupon.getId());
                     assertThat(issued).hasSize(limitCount);

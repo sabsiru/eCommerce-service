@@ -14,7 +14,7 @@ public class CouponEventListener {
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handleCouponUse(CouponValidateEvent event) {
         if (event.getCouponId() != null) {
-            couponService.use(event.getCouponId());
+            couponService.useByCoupon(event.getUserId(), event.getCouponId());
         }
     }
 }

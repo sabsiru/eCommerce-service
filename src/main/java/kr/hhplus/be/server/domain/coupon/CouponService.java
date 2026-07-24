@@ -86,6 +86,26 @@ public class CouponService {
         return userCoupon;
     }
 
+    private UserCoupon getByUserAndCouponOrThrow(Long userId, Long couponId) {
+        return userCouponRepository.findByUserIdAndCouponId(userId, couponId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "사용자 쿠폰을 찾을 수 없습니다. userId=" + userId + ", couponId=" + couponId));
+    }
+
+    @Transactional
+    public UserCoupon useByCoupon(Long userId, Long couponId) {
+        UserCoupon userCoupon = getByUserAndCouponOrThrow(userId, couponId);
+        userCoupon.use();
+        return userCoupon;
+    }
+
+    @Transactional
+    public UserCoupon refundByCoupon(Long userId, Long couponId) {
+        UserCoupon userCoupon = getByUserAndCouponOrThrow(userId, couponId);
+        userCoupon.refund();
+        return userCoupon;
+    }
+
     public int calculateDiscountAmount(Long couponId, int totalAmount) {
         Coupon coupon = getCouponOrThrow(couponId);
         return coupon.calculateDiscountAmount(totalAmount);

@@ -2,6 +2,7 @@ package kr.hhplus.be.server.e2e;
 
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
+import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
 import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
 import kr.hhplus.be.server.domain.product.ProductRepository;
@@ -35,6 +36,9 @@ public class CouponE2ETest {
     CouponRepository couponRepository;
 
     @Autowired
+    CouponService couponService;
+
+    @Autowired
     UserCouponRepository userCouponRepository;
 
     @BeforeEach
@@ -48,7 +52,7 @@ public class CouponE2ETest {
     void 쿠폰_정상_발급_테스트() {
         // given
         User user = userRepository.save(User.create("발급유저", 10000));
-        Coupon coupon = couponRepository.save(Coupon.create("테스트쿠폰", 20, 2000, LocalDateTime.now().plusDays(1), 100));
+        Coupon coupon = couponService.create("테스트쿠폰", 20, 2000, LocalDateTime.now().plusDays(1), 100);
 
         // when: 발급 API 호출
         ResponseEntity<String> issueRes = restTemplate.postForEntity(
@@ -63,6 +67,6 @@ public class CouponE2ETest {
         List<UserCoupon> userCoupons = userCouponRepository.findAll();
         assertThat(userCoupons).hasSize(1);
         assertThat(userCoupons.get(0).getUserId()).isEqualTo(user.getId());
-        assertThat(userCoupons.get(0).getId()).isEqualTo(coupon.getId());
+        assertThat(userCoupons.get(0).getCouponId()).isEqualTo(coupon.getId());
     }
 }
