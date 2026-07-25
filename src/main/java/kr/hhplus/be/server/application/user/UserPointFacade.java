@@ -14,6 +14,7 @@ public class UserPointFacade {
     private final UserPointService userPointService;
     private final PointHistoryService pointHistoryService;
 
+    @Transactional
     public User chargePoint(Long userId, int amount) {
         User updated = userPointService.chargePoint(userId, amount);
         pointHistoryService.saveCharge(userId, amount);
