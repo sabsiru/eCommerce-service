@@ -48,6 +48,6 @@ class RedisCouponInventoryReaderTest {
         // issue 시도 시 만료 예외 발생
         IllegalStateException exception = assertThrows(IllegalStateException.class,
                 () -> couponService.issue(1L, coupon.getId()));
-        assertThat(exception.getMessage()).isEqualTo("만료된 쿠폰입니다.");
+        assertThat(exception.getMessage()).isEqualTo("발급이 종료된 쿠폰입니다.");
     }
 }

@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.payment;
 
-import kr.hhplus.be.server.domain.payment.event.PaymentEventPublisher;
+import kr.hhplus.be.server.domain.payment.event.PaymentCompletedProducer;
 import kr.hhplus.be.server.application.user.UserPointFacade;
 import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.coupon.event.CouponEventPublisher;
@@ -49,7 +49,7 @@ class PaymentFacadeTest {
     private CouponService couponService;
 
     @Mock
-    private PaymentEventPublisher paymentEventPublisher;
+    private PaymentCompletedProducer paymentCompletedProducer;
     @Mock
     private CouponEventPublisher couponEventPublisher;
     @Mock
@@ -89,7 +89,7 @@ class PaymentFacadeTest {
         assertNull(result.getCouponId());
 
         verify(pointEventPublisher).publishPointUsed(any());
-        verify(paymentEventPublisher).publishPaymentCompleted(eq(mockPayment), eq(order));
+        verify(paymentCompletedProducer).send(eq(mockPayment), eq(order));
         verify(orderService).pay(orderId);
         verify(paymentService).create(orderId, totalAmount, null);
     }
@@ -122,7 +122,7 @@ class PaymentFacadeTest {
         assertEquals(discountedAmount, result.getAmount());
 
         verify(couponEventPublisher).publishCouponValidate(any(CouponValidateEvent.class));
-        verify(paymentEventPublisher).publishPaymentCompleted(eq(mockPayment), eq(order));
+        verify(paymentCompletedProducer).send(eq(mockPayment), eq(order));
         verify(orderService).pay(orderId);
         verify(couponService).calculateDiscountAmount(couponId, totalAmount);
         verify(paymentService).create(orderId, discountedAmount, couponId);
@@ -139,17 +139,20 @@ void 결제_실패_재고_부족() {
 
     when(orderService.pay(orderId)).thenReturn(order);
 
-    doAnswer(invocation -> {
-        throw new IllegalStateException("상품 재고가 부족합니다.");
-    }).when(paymentEventPublisher).publishPaymentCompleted(any(), any());
+    List<OrderItem> dummyItems = List.of(
+            new OrderItem(order, productId, quantity, unitPrice)
+    );
+    when(orderService.getOrderItems(orderId)).thenReturn(dummyItems);
+    when(productService.decreaseStock(productId, quantity))
+            .thenThrow(new IllegalStateException("재고가 부족합니다."));
 
     // when & then
     IllegalStateException e = assertThrows(IllegalStateException.class,
             () -> paymentFacade.processPayment(orderId, totalAmount));
-    assertEquals("상품 재고가 부족합니다.", e.getMessage());
+    assertEquals("재고가 부족합니다.", e.getMessage());
 
-    // PaymentCompletedEvent
-    verify(paymentEventPublisher).publishPaymentCompleted(any(), any());
+    verify(productService).decreaseStock(productId, quantity);
+    verify(paymentCompletedProducer, never()).send(any(), any());
 }
 
     @Test

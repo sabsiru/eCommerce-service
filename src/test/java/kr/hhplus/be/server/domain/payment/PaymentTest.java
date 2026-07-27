@@ -28,7 +28,7 @@ class PaymentTest {
         assertNotNull(payment);
         assertEquals(1L, payment.getOrderId());
         assertEquals(10000, payment.getAmount());
-        assertEquals(PaymentStatus.PENDING, payment.getStatus());
+        assertEquals(PaymentStatus.COMPLETED, payment.getStatus());
         assertEquals(55L, payment.getCouponId());
     }
 

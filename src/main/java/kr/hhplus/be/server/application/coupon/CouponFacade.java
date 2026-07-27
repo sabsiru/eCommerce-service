@@ -3,6 +3,7 @@ package kr.hhplus.be.server.application.coupon;
 import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.CouponService;
+import kr.hhplus.be.server.domain.coupon.UserCoupon;
 import kr.hhplus.be.server.domain.coupon.event.CouponIssuedMessage;
 import kr.hhplus.be.server.domain.coupon.event.CouponIssuedProducer;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +18,9 @@ public class CouponFacade {
     private final CouponService couponService;
     private final CouponIssuedProducer couponIssuedProducer;
 
-    public void issue(Long userId, Long couponId) {
+    public UserCoupon issue(Long userId, Long couponId) {
 
-         couponService.issue(userId, couponId);
+         return couponService.issue(userId, couponId);
     }
 
     public void issueAsync( Long couponId, Long userId) {

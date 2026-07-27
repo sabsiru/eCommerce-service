@@ -51,11 +51,11 @@ public class CouponService {
     }
 
     @Transactional
-    public void issue(Long couponId, Long userId) {
+    public UserCoupon issue(Long userId, Long couponId) {
         couponInventoryReader.issue(couponId, userId);
         try {
             UserCoupon userCoupon = UserCoupon.issue(couponId, userId);
-            userCouponRepository.save(userCoupon);
+            return userCouponRepository.save(userCoupon);
         } catch (Exception e) {
             couponInventoryReader.release(couponId, userId);
             throw e;
@@ -82,6 +82,26 @@ public class CouponService {
     @Transactional
     public UserCoupon refund(Long userCouponId) {
         UserCoupon userCoupon = getById(userCouponId);
+        userCoupon.refund();
+        return userCoupon;
+    }
+
+    private UserCoupon getByUserAndCouponOrThrow(Long userId, Long couponId) {
+        return userCouponRepository.findByUserIdAndCouponId(userId, couponId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "사용자 쿠폰을 찾을 수 없습니다. userId=" + userId + ", couponId=" + couponId));
+    }
+
+    @Transactional
+    public UserCoupon useByCoupon(Long userId, Long couponId) {
+        UserCoupon userCoupon = getByUserAndCouponOrThrow(userId, couponId);
+        userCoupon.use();
+        return userCoupon;
+    }
+
+    @Transactional
+    public UserCoupon refundByCoupon(Long userId, Long couponId) {
+        UserCoupon userCoupon = getByUserAndCouponOrThrow(userId, couponId);
         userCoupon.refund();
         return userCoupon;
     }

@@ -37,7 +37,7 @@ public class UserPointControllerTest {
         // when & then
         String requestBody = "{\"userId\": 1, \"chargeAmount\": 5000}";
 
-        mockMvc.perform(post("/point/1/charge")
+        mockMvc.perform(post("/point/charge")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
@@ -59,7 +59,7 @@ public class UserPointControllerTest {
 
         //then
         // when & then
-        mockMvc.perform(post("/point/1/charge")
+        mockMvc.perform(post("/point/charge")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest())
@@ -77,7 +77,7 @@ public class UserPointControllerTest {
             String requestBody = "{\"userId\": 1, \"chargeAmount\": " + excessiveChargeAmount + "}";
 
             // when & t
-            mockMvc.perform(post("/point/1/charge")
+            mockMvc.perform(post("/point/charge")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
                     .andExpect(status().isBadRequest())

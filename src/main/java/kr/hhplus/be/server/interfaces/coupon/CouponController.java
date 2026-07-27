@@ -18,9 +18,9 @@ public class CouponController {
 
     @PostMapping("/{userId}/issue")
     @ResponseStatus(HttpStatus.CREATED)
-    public void issueCoupon(@PathVariable Long userId,
+    public UserCoupon issueCoupon(@PathVariable Long userId,
                                   @RequestParam Long couponId) {
-        couponFacade.issue(userId, couponId);
+        return couponFacade.issue(userId, couponId);
     }
 
     @PostMapping("/{userId}/issue-async")

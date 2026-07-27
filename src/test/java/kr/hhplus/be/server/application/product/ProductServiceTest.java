@@ -37,14 +37,14 @@ class ProductServiceTest {
         int expectedStock = 50;
 
         Product product = new Product(productId, "Test Product", 10000, expectedStock, 1L, LocalDateTime.now(), LocalDateTime.now());
-        when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(product));
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
         // when
         int actualStock = productService.checkStock(productId);
 
         // then
         assertEquals(expectedStock, actualStock);
-        verify(productRepository, times(1)).findByIdForUpdate(productId);
+        verify(productRepository, times(1)).findById(productId);
     }
 
     @Test
@@ -59,7 +59,7 @@ class ProductServiceTest {
                 .categoryId(1L)
                 .build();
 
-        when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(product));
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
         // when & then
         assertDoesNotThrow(() -> productService.checkStock(productId, 5));
@@ -77,7 +77,7 @@ class ProductServiceTest {
                 .categoryId(1L)
                 .build();
 
-        when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(product));
+        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
         // when & then
         IllegalStateException exception = assertThrows(IllegalStateException.class,

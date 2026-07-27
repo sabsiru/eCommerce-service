@@ -45,6 +45,6 @@ public class ProductController {
 
     @GetMapping("/popular")
     public List<PopularProductInfo> getPopularProducts() {
-        return productFacade.getPopularProducts();
+        return productFacade.getPopularProductsView();
     }
 }

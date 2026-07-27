@@ -85,7 +85,7 @@ class PaymentFacadeIntegrationTest {
                 Coupon.create("20%할인", 20, 5000, LocalDateTime.now().plusDays(1), 10)
         );
         UserCoupon uc = userCouponRepository.save(
-                UserCoupon.issue(user.getId(), coupon.getId())
+                UserCoupon.issue(coupon.getId(), user.getId())
         );
         List<OrderLine> lines = List.of(new OrderLine(product.getId(), 1, product.getPrice()));
         Order order = orderService.create(user.getId(), lines);

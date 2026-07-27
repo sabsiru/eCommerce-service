@@ -24,6 +24,10 @@ class CouponServiceTest {
 
     @Mock
     private UserCouponRepository userCouponRepository;
+
+    @Mock
+    private CouponInventoryReader couponInventoryReader;
+
     @Test
     void 쿠폰_단건조회_성공() {
         Long couponId = 1L;
@@ -39,18 +43,18 @@ class CouponServiceTest {
                 .issuedCount(0)
                 .build();
 
-        when(couponRepository.findByIdForUpdate(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
 
         Coupon result = couponService.getCouponOrThrow(couponId);
 
         assertEquals(coupon, result);
-        verify(couponRepository).findByIdForUpdate(couponId);
+        verify(couponRepository).findById(couponId);
     }
 
     @Test
     void 쿠폰_단건조회_실패() {
         Long couponId = 999L;
-        when(couponRepository.findByIdForUpdate(couponId)).thenReturn(Optional.empty());
+        when(couponRepository.findById(couponId)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
                 () -> couponService.getCouponOrThrow(couponId));
@@ -60,23 +64,9 @@ class CouponServiceTest {
     void 쿠폰_발급_성공() {
         Long userId = 1L;
         Long couponId = 1L;
-        Coupon coupon = Coupon.builder()
-                .id(couponId)
-                .name("테스트쿠폰")
-                .discountRate(10)
-                .maxDiscountAmount(5000)
-                .status(CouponStatus.ACTIVE)
-                .expirationAt(LocalDateTime.now().plusDays(5))
-                .createdAt(LocalDateTime.now())
-                .limitCount(10)
-                .issuedCount(0)
-                .build();
+        UserCoupon issued = UserCoupon.issue(couponId, userId);
 
-        Coupon updated = coupon.increaseIssuedCount();
-        UserCoupon issued = UserCoupon.issue(userId, couponId);
-
-        when(couponRepository.findByIdForUpdate(couponId)).thenReturn(Optional.of(coupon));
-        when(couponRepository.save(any())).thenReturn(updated);
+        when(couponInventoryReader.issue(couponId, userId)).thenReturn(true);
         when(userCouponRepository.save(any())).thenReturn(issued);
 
         UserCoupon result = couponService.issue(userId, couponId);
@@ -85,7 +75,7 @@ class CouponServiceTest {
         assertEquals(userId, result.getUserId());
         assertEquals(couponId, result.getCouponId());
         assertEquals(UserCouponStatus.ISSUED, result.getStatus());
-        verify(couponRepository).save(any());
+        verify(couponInventoryReader).issue(couponId, userId);
         verify(userCouponRepository).save(any());
     }
 
@@ -93,114 +83,36 @@ class CouponServiceTest {
     void 쿠폰_발급_실패_수량초과() {
         Long userId = 1L;
         Long couponId = 1L;
-        Coupon coupon = Coupon.builder()
-                .id(couponId)
-                .name("테스트쿠폰")
-                .discountRate(10)
-                .maxDiscountAmount(5000)
-                .status(CouponStatus.ACTIVE)
-                .expirationAt(LocalDateTime.now().plusDays(5))
-                .createdAt(LocalDateTime.now())
-                .limitCount(10)
-                .issuedCount(10)
-                .build();
 
-        when(couponRepository.findByIdForUpdate(couponId)).thenReturn(Optional.of(coupon));
+        when(couponInventoryReader.issue(couponId, userId))
+                .thenThrow(new IllegalStateException("재고가 소진되었습니다."));
 
-        assertThrows(IllegalStateException.class, () -> couponService.issue(userId,couponId));
+        assertThrows(IllegalStateException.class, () -> couponService.issue(userId, couponId));
+        verify(userCouponRepository, never()).save(any());
     }
 
     @Test
     void 쿠폰_발급_실패_만료() {
         Long userId = 1L;
         Long couponId = 1L;
-        Coupon expiredCoupon = Coupon.builder()
-                .id(couponId)
-                .name("만료쿠폰")
-                .discountRate(10)
-                .maxDiscountAmount(5000)
-                .status(CouponStatus.ACTIVE)
-                .expirationAt(LocalDateTime.now().minusDays(1))
-                .createdAt(LocalDateTime.now().minusDays(10))
-                .limitCount(10)
-                .issuedCount(5)
-                .build();
 
-        when(couponRepository.findByIdForUpdate(couponId)).thenReturn(Optional.of(expiredCoupon));
+        when(couponInventoryReader.issue(couponId, userId))
+                .thenThrow(new IllegalStateException("발급이 종료된 쿠폰입니다."));
 
-        assertThrows(IllegalArgumentException.class, () -> couponService.issue(userId,couponId));
+        assertThrows(IllegalStateException.class, () -> couponService.issue(userId, couponId));
+        verify(userCouponRepository, never()).save(any());
     }
 
     @Test
-    void 쿠폰_발급_경계값_도달_상태_변경() {
+    void 쿠폰_발급_저장실패시_재고를_복구한다() {
         Long userId = 1L;
         Long couponId = 1L;
-        Coupon originalCoupon = Coupon.builder()
-                .id(couponId)
-                .name("10% 할인")
-                .discountRate(10)
-                .maxDiscountAmount(5000)
-                .status(CouponStatus.ACTIVE)
-                .expirationAt(LocalDateTime.now().plusDays(1))
-                .createdAt(LocalDateTime.now())
-                .limitCount(10)
-                .issuedCount(9)
-                .build();
 
-        Coupon updatedCoupon = originalCoupon.increaseIssuedCount();
-        UserCoupon issued = UserCoupon.issue(userId, couponId);
+        when(couponInventoryReader.issue(couponId, userId)).thenReturn(true);
+        when(userCouponRepository.save(any())).thenThrow(new RuntimeException("저장 실패"));
 
-        when(couponRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(originalCoupon));
-        when(couponRepository.save(any(Coupon.class))).thenReturn(updatedCoupon);
-        when(userCouponRepository.save(any())).thenReturn(issued);
+        assertThrows(RuntimeException.class, () -> couponService.issue(userId, couponId));
 
-        UserCoupon result = couponService.issue(userId, couponId);
-
-        assertEquals(UserCouponStatus.ISSUED, result.getStatus());
-        assertEquals(couponId, result.getCouponId());
-    }
-
-    @Test
-    void 쿠폰_발급_한도_직전_상태_유지() {
-        // given
-        Long userId = 1L;
-        Long couponId = 1L;
-        LocalDateTime now = LocalDateTime.now();
-
-        Coupon originalCoupon = Coupon.builder()
-                .id(couponId)
-                .name("10% 할인")
-                .discountRate(10)
-                .maxDiscountAmount(5000)
-                .status(CouponStatus.ACTIVE)
-                .expirationAt(now.plusDays(1))
-                .createdAt(now)
-                .limitCount(5)
-                .issuedCount(3)
-                .build();
-
-        Coupon updatedCoupon = originalCoupon.increaseIssuedCount();
-
-        UserCoupon issuedUserCoupon = UserCoupon.issue(userId, couponId);
-
-        when(couponRepository.findByIdForUpdate(couponId))
-                .thenReturn(Optional.of(originalCoupon));
-        when(couponRepository.save(any(Coupon.class)))
-                .thenReturn(updatedCoupon);
-        when(userCouponRepository.save(any(UserCoupon.class)))
-                .thenReturn(issuedUserCoupon);
-
-        // when
-        UserCoupon result = couponService.issue(userId, couponId);
-
-        // then
-        assertNotNull(result);
-        assertEquals(userId, result.getUserId());
-        assertEquals(couponId, result.getCouponId());
-        assertEquals(UserCouponStatus.ISSUED, result.getStatus());
-
-        verify(couponRepository).findByIdForUpdate(couponId);
-        verify(couponRepository).save(any(Coupon.class));
-        verify(userCouponRepository).save(any(UserCoupon.class));
+        verify(couponInventoryReader).release(couponId, userId);
     }
 }

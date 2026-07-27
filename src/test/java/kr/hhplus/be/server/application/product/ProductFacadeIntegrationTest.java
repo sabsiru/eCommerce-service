@@ -33,6 +33,9 @@ class ProductFacadeIntegrationTest {
 
     @BeforeEach
     void cleanDb() {
+        // OrderItem.order는 FK 제약이 없어(NO_CONSTRAINT) orderRepository.deleteAll()로
+        // 자동 삭제되지 않는다 - 명시적으로 같이 지워야 다른 테스트의 주문 데이터가 집계에 안 섞인다.
+        orderItemRepository.deleteAll();
         productRepository.deleteAll();
         orderRepository.deleteAll();
     }

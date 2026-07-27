@@ -108,20 +108,21 @@ public class PaymentE2ETest {
         Long orderId = orderRes.getBody().getId();
 
         HttpEntity<PaymentRequest> payReq = new HttpEntity<>(new PaymentRequest(5000));
-        ResponseEntity<String> payRes = restTemplate.exchange(
+        ResponseEntity<PaymentResponse> payRes = restTemplate.exchange(
                 "/payments/" + orderId + "/pay",
                 HttpMethod.PATCH,
                 payReq,
-                String.class
+                PaymentResponse.class
         );
 
         User afterPayment = userRepository.findById(user.getId()).orElseThrow();
         assertThat(afterPayment.getPoint()).isEqualTo(5000);
         assertThat(payRes.getStatusCode().is2xxSuccessful()).isTrue();
+        Long paymentId = payRes.getBody().getId();
 
         // 환불 요청
         ResponseEntity<String> refundRes = restTemplate.exchange(
-                "/payments/" + orderId + "/refund",
+                "/payments/" + paymentId + "/refund",
                 HttpMethod.PATCH,
                 null,
                 String.class
@@ -137,7 +138,7 @@ public class PaymentE2ETest {
         User user = userRepository.save(User.create("쿠폰유저", 10000));
         Product product = productRepository.save(new Product("쿠폰상품", 5000, 5, 1L));
         Coupon coupon = couponRepository.save(Coupon.create("10% 할인쿠폰", 10, 1000, LocalDateTime.now().plusDays(1),100));
-        userCouponRepository.save(UserCoupon.issue(user.getId(), coupon.getId()));
+        userCouponRepository.save(UserCoupon.issue(coupon.getId(), user.getId()));
 
         // 주문 생성
         OrderCommand.Create command = new OrderCommand.Create(
@@ -149,19 +150,20 @@ public class PaymentE2ETest {
         Long orderId = orderRes.getBody().getId();
 
         HttpEntity<PaymentRequest> payReq = new HttpEntity<>(new PaymentRequest(5000));
-        ResponseEntity<String> payRes = restTemplate.exchange(
+        ResponseEntity<PaymentResponse> payRes = restTemplate.exchange(
                 "/payments/" + orderId + "/pay",
                 HttpMethod.PATCH,
                 payReq,
-                String.class
+                PaymentResponse.class
         );
         assertThat(payRes.getStatusCode().is2xxSuccessful()).isTrue();
 
         User afterPayment = userRepository.findById(user.getId()).orElseThrow();
         assertThat(afterPayment.getPoint()).isEqualTo(5500);
+        Long paymentId = payRes.getBody().getId();
 
         ResponseEntity<String> refundRes = restTemplate.exchange(
-                "/payments/" + orderId + "/refund",
+                "/payments/" + paymentId + "/refund",
                 HttpMethod.PATCH,
                 null,
                 String.class

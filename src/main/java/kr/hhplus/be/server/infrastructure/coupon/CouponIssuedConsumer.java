@@ -23,8 +23,8 @@ public class CouponIssuedConsumer {
     public void consume(CouponIssuedMessage message, Acknowledgment ack) {
         try {
             couponService.issue(
-                    message.getCouponId(),
-                    message.getUserId()
+                    message.getUserId(),
+                    message.getCouponId()
             );
             ack.acknowledge();
         } catch (IllegalStateException e) {

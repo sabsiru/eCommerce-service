@@ -56,6 +56,7 @@ class ProductControllerIntegrationTest {
 
     @Test
     void 인기상품_정상_조회() throws Exception {
+        summaryRepository.deleteAll();
         LocalDate summaryDate = LocalDate.now().minusDays(1);
         List<PopularProductSummary> summaries = IntStream.rangeClosed(1, 5)
                 .mapToObj(i -> new PopularProductSummary(

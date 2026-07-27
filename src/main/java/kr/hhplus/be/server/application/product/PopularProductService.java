@@ -89,6 +89,7 @@ public class PopularProductService {
     public List<PopularProductInfo> getPopularProductsView() {
         List<PopularProductSummary> summaries = popularProductSummaryRepository.findAll();
         return summaries.stream()
+                .sorted((a, b) -> Integer.compare(b.getTotalQuantity(), a.getTotalQuantity()))
                 .map(e -> new PopularProductInfo(e.getProductId(), e.getTotalQuantity()))
                 .toList();
     }

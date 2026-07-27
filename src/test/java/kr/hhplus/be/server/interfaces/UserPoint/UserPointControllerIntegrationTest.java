@@ -38,7 +38,7 @@ class UserPointControllerIntegrationTest {
         UserPointRequest request = new UserPointRequest(user.getId(), 5000);
 
         // when & then
-        mockMvc.perform(post("/point/{userId}/charge", user.getId())
+        mockMvc.perform(post("/point/charge")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -52,7 +52,7 @@ class UserPointControllerIntegrationTest {
         User user = userRepository.save(User.create("에러유저", 0));
         UserPointRequest request = new UserPointRequest(user.getId(), -1000);
 
-        mockMvc.perform(post("/point/{userId}/charge", user.getId())
+        mockMvc.perform(post("/point/charge")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -64,7 +64,7 @@ class UserPointControllerIntegrationTest {
         User user = userRepository.save(User.create("최대한도유저", 9_999_999));
         UserPointRequest request = new UserPointRequest(user.getId(), 10_000);  // 총합 1000만 초과
 
-        mockMvc.perform(post("/point/{userId}/charge", user.getId())
+        mockMvc.perform(post("/point/charge")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -76,7 +76,7 @@ class UserPointControllerIntegrationTest {
         User user = userRepository.save(User.create("1회한도유저", 0));
         UserPointRequest request = new UserPointRequest(user.getId(), 1_000_001);  // 1회 한도 초과
 
-        mockMvc.perform(post("/point/{userId}/charge", user.getId())
+        mockMvc.perform(post("/point/charge")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
