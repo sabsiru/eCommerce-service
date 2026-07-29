@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.order;
 
 import kr.hhplus.be.server.domain.order.*;
+import kr.hhplus.be.server.domain.product.Product;
 import kr.hhplus.be.server.domain.product.ProductService;
 import kr.hhplus.be.server.domain.user.User;
 import kr.hhplus.be.server.domain.user.UserPointService;
@@ -43,7 +44,8 @@ class OrderFacadeTest {
 
         doNothing().when(productService).checkStock(101L, 2);
         doNothing().when(productService).checkStock(102L, 1);
-
+        when(productService.getProduct(101L)).thenReturn(new Product("상품1", 15000, 100, 1L));
+        when(productService.getProduct(102L)).thenReturn(new Product("상품2", 20000, 100, 1L));
 
         Order dummyOrder = new Order(userId);
         dummyOrder.addLine(101L, 2, 15000);

@@ -26,8 +26,14 @@ public class OrderFacade {
             productService.checkStock(item.getProductId(), item.getQuantity());
         }
 
+        // 주문 가격은 클라이언트가 보낸 itemPrice를 신뢰하지 않고, 서버가 실제
+        // Product.price를 조회해 강제한다 (클라이언트가 임의 가격으로 주문하는 것 방지).
         List<OrderLine> lines = command.getItems().stream()
-                .map(i -> new OrderLine(i.getProductId(), i.getQuantity(), i.getItemPrice()))
+                .map(i -> new OrderLine(
+                        i.getProductId(),
+                        i.getQuantity(),
+                        productService.getProduct(i.getProductId()).getPrice()
+                ))
                 .collect(Collectors.toList());
 
         Order saved = orderService.create(command.getUserId(), lines);
