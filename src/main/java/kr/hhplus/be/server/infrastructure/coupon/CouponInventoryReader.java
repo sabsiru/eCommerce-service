@@ -1,5 +1,8 @@
 package kr.hhplus.be.server.infrastructure.coupon;
 
+import kr.hhplus.be.server.domain.coupon.CouponIssuanceClosedException;
+import kr.hhplus.be.server.domain.coupon.CouponSoldOutException;
+import kr.hhplus.be.server.domain.coupon.DuplicateCouponIssueException;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
@@ -43,11 +46,11 @@ public class CouponInventoryReader implements kr.hhplus.be.server.domain.coupon.
                 String issuedUsersKey = String.format(ISSUED_USERS_KEY, couponId);
 
                 if (!operations.hasKey(inventoryKey)) {
-                    throw new IllegalStateException("발급이 종료된 쿠폰입니다.");
+                    throw new CouponIssuanceClosedException("발급이 종료된 쿠폰입니다.");
                 }
 
                 if (Boolean.TRUE.equals(operations.opsForSet().isMember(issuedUsersKey, userId.toString()))) {
-                    throw new IllegalStateException("이미 발급받은 사용자입니다.");
+                    throw new DuplicateCouponIssueException("이미 발급받은 사용자입니다.");
                 }
                 operations.multi();
                 operations.opsForList().leftPop(inventoryKey);
@@ -55,7 +58,7 @@ public class CouponInventoryReader implements kr.hhplus.be.server.domain.coupon.
 
                 List<Object> results = operations.exec();
                 if (results.get(0) == null) {
-                    throw new IllegalStateException("재고가 소진되었습니다.");
+                    throw new CouponSoldOutException("재고가 소진되었습니다.");
                 }
 
                 return true;
