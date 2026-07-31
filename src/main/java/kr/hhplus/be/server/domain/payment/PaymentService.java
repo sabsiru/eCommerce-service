@@ -19,23 +19,6 @@ public class PaymentService {
         return paymentRepository.save(payment);
     }
 
-    public Payment initiateWithoutCoupon(Long orderId, int amount) {
-        Payment payment = Payment.withoutCoupon(orderId, amount);
-        return paymentRepository.save(payment);
-    }
-
-    public Payment initiate(Long orderId, int amount, Long couponId) {
-        Payment payment = Payment.create(orderId, amount, couponId);
-        return paymentRepository.save(payment);
-    }
-
-    public Payment complete(Long paymentId) {
-        Payment payment = getPaymentForCompleteOrThrow(paymentId);
-        payment.complete();
-
-        return paymentRepository.save(payment);
-    }
-
     public Payment refund(Long paymentId) {
         Payment payment = getPaymentForRefundOrThrow(paymentId);
         payment.refund();
@@ -55,15 +38,4 @@ public class PaymentService {
         return payment;
     }
 
-    public Payment getPaymentForCompleteOrThrow(Long paymentId) {
-        Payment payment = paymentRepository.findByIdForUpdate(paymentId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "결제를 찾을 수 없습니다. paymentId=" + paymentId));
-
-        if (payment.getStatus() == PaymentStatus.COMPLETED) {
-            throw new IllegalStateException(
-                    "이미 결제된 주문입니다. paymentId=" + paymentId);
-        }
-        return payment;
-    }
 }
