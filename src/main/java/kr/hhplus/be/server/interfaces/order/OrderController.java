@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.interfaces.order;
 
+import jakarta.validation.Valid;
 import kr.hhplus.be.server.application.order.OrderCommand;
 import kr.hhplus.be.server.application.order.OrderFacade;
 import kr.hhplus.be.server.application.order.OrderResult;
@@ -18,7 +19,7 @@ public class OrderController {
     private final OrderFacade orderFacade;
 
     @PostMapping
-    public ResponseEntity<OrderResponse> create(@RequestBody OrderRequest request) {
+    public ResponseEntity<OrderResponse> create(@Valid @RequestBody OrderRequest request) {
         List<OrderCommand.Item> items = request.getItems().stream()
                 .map(i -> new OrderCommand.Item(i.getProductId(), i.getQuantity(),i.getItemPrice()))
                 .collect(Collectors.toList());
