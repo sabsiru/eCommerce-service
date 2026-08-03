@@ -15,12 +15,12 @@ public class PaymentController {
     private final PaymentFacade paymentFacade;
 
     @PatchMapping("/{orderId}/pay")
-    public ResponseEntity<Payment> completePayment(
+    public ResponseEntity<PaymentResponse> completePayment(
             @PathVariable Long orderId,
             @Valid @RequestBody PaymentRequest request
     ) {
         Payment payment = paymentFacade.processPayment(orderId, request.getPaymentAmount());
-        return ResponseEntity.ok(payment);
+        return ResponseEntity.ok(PaymentResponse.from(payment));
     }
 
     @PatchMapping("/{paymentId}/refund")
