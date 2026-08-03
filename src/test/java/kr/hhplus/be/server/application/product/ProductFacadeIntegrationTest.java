@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.CacheManager;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -31,6 +32,9 @@ class ProductFacadeIntegrationTest {
     @Autowired
     OrderItemRepository orderItemRepository;
 
+    @Autowired
+    CacheManager cacheManager;
+
     @BeforeEach
     void cleanDb() {
         // OrderItem.order는 FK 제약이 없어(NO_CONSTRAINT) orderRepository.deleteAll()로
@@ -38,6 +42,14 @@ class ProductFacadeIntegrationTest {
         orderItemRepository.deleteAll();
         productRepository.deleteAll();
         orderRepository.deleteAll();
+
+        // productFacade.getPopularProducts()는 고정 키("top5")로 캐싱되는데, 로컬처럼
+        // Redis가 여러 번의 테스트 실행 사이에도 계속 떠있으면 이전 실행에서 캐싱된
+        // 값이 이번 실행의 새 데이터와 어긋나 테스트가 흔들릴 수 있다 - 매번 비워준다.
+        var cache = cacheManager.getCache("popularProducts");
+        if (cache != null) {
+            cache.clear();
+        }
     }
     @Test
     void 인기_상품_조회_성공() {
