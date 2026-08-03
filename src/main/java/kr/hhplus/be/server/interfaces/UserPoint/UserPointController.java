@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.interfaces.UserPoint;
 
+import jakarta.validation.Valid;
 import kr.hhplus.be.server.application.user.UserPointFacade;
 import kr.hhplus.be.server.domain.user.User;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class UserPointController {
     private final UserPointFacade userPointFacade;
 
     @PostMapping("/charge")
-    public ResponseEntity<User> chargePoint(@RequestBody UserPointRequest request) {
+    public ResponseEntity<User> chargePoint(@Valid @RequestBody UserPointRequest request) {
         User updatedUser = userPointFacade.chargePoint(request.getUserId(), request.getChargeAmount());
         return ResponseEntity.ok(updatedUser);
     }

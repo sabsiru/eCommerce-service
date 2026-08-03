@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.interfaces.payment;
 
+import jakarta.validation.Valid;
 import kr.hhplus.be.server.application.payment.PaymentFacade;
 import kr.hhplus.be.server.domain.payment.Payment;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ public class PaymentController {
     @PatchMapping("/{orderId}/pay")
     public ResponseEntity<Payment> completePayment(
             @PathVariable Long orderId,
-            @RequestBody PaymentRequest request
+            @Valid @RequestBody PaymentRequest request
     ) {
         Payment payment = paymentFacade.processPayment(orderId, request.getPaymentAmount());
         return ResponseEntity.ok(payment);

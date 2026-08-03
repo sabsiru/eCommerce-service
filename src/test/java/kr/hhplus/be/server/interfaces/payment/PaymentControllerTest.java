@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -162,20 +163,18 @@ class PaymentControllerTest {
     }
 
     @Test
-    void 결제_실패_예외() throws Exception {
+    void 결제_실패_paymentAmount_0이하는_검증에서_거부된다() throws Exception {
         // given
         Long orderId = 1L;
-        int invalidAmount = 0;
 
-        doThrow(new IllegalArgumentException("포인트는 0보다 커야 합니다."))
-                .when(paymentFacade).processPayment(orderId, invalidAmount);
-
-        // when & then
+        // when & then: paymentAmount<=0은 @Valid 검증에서 걸러져 facade까지 도달하지 않는다
         mockMvc.perform(patch("/payments/{orderId}/pay", orderId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"paymentAmount\": 0}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("포인트는 0보다 커야 합니다.")));
+                .andExpect(content().string(containsString("paymentAmount")));
+
+        verifyNoInteractions(paymentFacade);
     }
 
     @Test
