@@ -55,10 +55,12 @@ class UserPointConcurrencyTest {
         // when
         User updated = userRepository.findById(user.getId()).orElseThrow();
         List<PointHistory> histories = pointHistoryRepository.findByUserId(user.getId());
-        // then
-        assertThat(updated.getPoint()).isBetween(0, initialPoint);
-        assertThat(histories.size()).isLessThanOrEqualTo(initialPoint/amount);
-
+        // then: 락이 제대로 걸리면 1000/200=5건만 성공해 정확히 0원이 남고, 5건의 사용 이력만
+        // 남는다. 범위(isBetween/isLessThanOrEqualTo)로만 검증하면 락이 일부만 걸리는 경우도
+        // 우연히 통과할 수 있어 정확한 기대값으로 검증한다.
+        int expectedSuccessCount = initialPoint / amount;
+        assertThat(updated.getPoint()).isEqualTo(initialPoint - expectedSuccessCount * amount);
+        assertThat(histories).hasSize(expectedSuccessCount);
     }
 
     @Test
