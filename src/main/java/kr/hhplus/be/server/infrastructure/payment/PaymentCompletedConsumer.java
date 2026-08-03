@@ -4,6 +4,7 @@ import kr.hhplus.be.server.application.product.PopularProductService;
 import kr.hhplus.be.server.domain.order.OrderItem;
 import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.payment.event.PaymentCompletedEvent;
+import kr.hhplus.be.server.domain.payment.event.PaymentEventPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
@@ -16,6 +17,7 @@ import java.util.List;
 public class PaymentCompletedConsumer {
     private final PopularProductService popularProductService;
     private final OrderService orderService;
+    private final PaymentEventPort paymentEventPort;
 
     @KafkaListener(topics = "${topic.payment-completed}", groupId = "payment-service")
     public void handlePaymentCompleted(PaymentCompletedEvent event, Acknowledgment acknowledgment) {
@@ -24,6 +26,7 @@ public class PaymentCompletedConsumer {
             for (OrderItem item : items) {
                 popularProductService.incrementProductSales(item.getProductId(), item.getQuantity());
             }
+            paymentEventPort.send(event);
             acknowledgment.acknowledge();
         } catch (Exception e) {
             throw new RuntimeException(e);
