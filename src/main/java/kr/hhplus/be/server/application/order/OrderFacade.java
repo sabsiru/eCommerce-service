@@ -48,7 +48,7 @@ public class OrderFacade {
     public OrderResult.Create cancelOrder(Long orderId) {
         Order canceled = orderService.cancel(orderId);
 
-        List<OrderResult.Item> items = OrderMapper.toResultItems(canceled.getItems());
+        List<OrderResult.Item> items = OrderMapper.toResultItems(orderService.getOrderItems(canceled.getId()));
 
         int totalAmount = items.stream()
                 .mapToInt(i -> i.getQuantity() * i.getItemPrice())
@@ -67,7 +67,7 @@ public class OrderFacade {
         List<Order> orders = orderService.getOrdersByUser(userId);
         return orders.stream()
                 .map(order -> {
-                    List<OrderResult.Item> items = order.getItems().stream()
+                    List<OrderResult.Item> items = orderService.getOrderItems(order.getId()).stream()
                             .map(i -> new OrderResult.Item(i.getProductId(), i.getQuantity(), i.getOrderPrice()))
                             .collect(Collectors.toList());
                     return new OrderResult.Create(

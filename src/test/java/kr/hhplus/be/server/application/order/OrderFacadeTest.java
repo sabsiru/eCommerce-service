@@ -88,13 +88,16 @@ class OrderFacadeTest {
     void 주문을_취소하면_상태가_CANCEL로_변경된다() {
         Long orderId = 1L;
         Long userId = 1L;
-        Order orderBefore = new Order(userId);
-        orderBefore.addLine(100L, 1, 10000);
-        Order canceled = new Order(userId);
-        canceled.addLine(100L, 1, 10000);
-        canceled.cancel();
+        Order canceled = Order.builder()
+                .id(orderId)
+                .userId(userId)
+                .totalAmount(10000)
+                .status(OrderStatus.CANCEL)
+                .build();
+        OrderItem item = new OrderItem(canceled, 100L, 1, 10000);
 
         when(orderService.cancel(orderId)).thenReturn(canceled);
+        when(orderService.getOrderItems(orderId)).thenReturn(List.of(item));
 
         OrderResult.Create result = orderFacade.cancelOrder(orderId);
 
@@ -107,11 +110,14 @@ class OrderFacadeTest {
     void 사용자별_주문목록을_정상적으로_반환한다() {
         // given
         Long userId = 1L;
-        Order o1 = new Order(userId);
-        o1.addLine(10L, 1, 10000);
-        Order o2 = new Order(userId);
-        o2.addLine(20L, 2, 15000);
+        Order o1 = Order.builder().id(1L).userId(userId).totalAmount(10000).status(OrderStatus.PENDING).build();
+        OrderItem o1Item = new OrderItem(o1, 10L, 1, 10000);
+        Order o2 = Order.builder().id(2L).userId(userId).totalAmount(30000).status(OrderStatus.PENDING).build();
+        OrderItem o2Item = new OrderItem(o2, 20L, 2, 15000);
+
         when(orderService.getOrdersByUser(userId)).thenReturn(List.of(o1, o2));
+        when(orderService.getOrderItems(1L)).thenReturn(List.of(o1Item));
+        when(orderService.getOrderItems(2L)).thenReturn(List.of(o2Item));
 
         List<OrderResult.Create> result = orderFacade.getOrdersByUser(userId);
 
