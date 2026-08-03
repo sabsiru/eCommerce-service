@@ -67,6 +67,27 @@ class OrderFacadeIntegrationTest {
     }
 
     @Test
+    void 주문_생성시_클라이언트가_보낸_가격은_무시되고_실제_상품가격이_적용된다() {
+        // given
+        User user = userRepository.save(User.create("테스터", 0));
+        Product product = productRepository.save(new Product("상품", 15000, 100, user.getId()));
+
+        // 클라이언트가 실제 가격(15000)과 다른 조작된 가격(1원)을 보냄
+        OrderCommand.Create cmd = new OrderCommand.Create(
+                user.getId(),
+                List.of(new OrderCommand.Item(product.getId(), 2, 1))
+        );
+
+        // when
+        OrderResult.Create result = orderFacade.processOrder(cmd);
+
+        // then: 조작된 가격(1원 * 2 = 2)이 아니라 실제 상품 가격(15000 * 2)이 적용돼야 한다
+        assertThat(result.getItems()).hasSize(1);
+        assertThat(result.getItems().get(0).getItemPrice()).isEqualTo(15000);
+        assertThat(result.getTotalPrice()).isEqualTo(2 * 15000);
+    }
+
+    @Test
     void 주문_취소_성공시_Status가_CANCEL로_변경된다() {
         // given
         User user = userRepository.save(User.create("테스터", 0));
