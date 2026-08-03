@@ -1,7 +1,6 @@
 package kr.hhplus.be.server.interfaces.coupon;
 
 import kr.hhplus.be.server.application.coupon.CouponFacade;
-import kr.hhplus.be.server.domain.coupon.Coupon;
 import kr.hhplus.be.server.domain.coupon.UserCoupon;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,9 +17,10 @@ public class CouponController {
 
     @PostMapping("/{userId}/issue")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserCoupon issueCoupon(@PathVariable Long userId,
+    public UserCouponResponse issueCoupon(@PathVariable Long userId,
                                   @RequestParam Long couponId) {
-        return couponFacade.issue(userId, couponId);
+        UserCoupon userCoupon = couponFacade.issue(userId, couponId);
+        return UserCouponResponse.from(userCoupon);
     }
 
     @PostMapping("/{userId}/issue-async")
@@ -42,7 +42,7 @@ public class CouponController {
     }
 
     @GetMapping
-    public Coupon getCoupon(@RequestParam Long couponId) {
-        return couponFacade.getCouponOrThrow(couponId);
+    public CouponResponse getCoupon(@RequestParam Long couponId) {
+        return CouponResponse.from(couponFacade.getCouponOrThrow(couponId));
     }
 }
