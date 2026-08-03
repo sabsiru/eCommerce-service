@@ -130,6 +130,27 @@ class PaymentFacadeIntegrationTest {
     }
 
     @Test
+    void 클라이언트가_보낸_결제금액이_주문금액과_다르면_IllegalArgumentException_발생() {
+        // given
+        User user = userRepository.save(User.create("테스터", 100000));
+        Product product = productRepository.save(new Product("상품1", 30000, 10, 1L));
+
+        List<OrderLine> lines = List.of(new OrderLine(product.getId(), 1, product.getPrice()));
+        Order order = orderService.create(user.getId(), lines);
+
+        // when & then: 실제 주문 금액(30000)과 다른 조작된 금액(1원)을 보냄
+        assertThrows(IllegalArgumentException.class,
+                () -> paymentFacade.processPayment(order.getId(), 1)
+        );
+
+        // 결제/포인트/재고 전부 반영되지 않아야 한다
+        assertThat(userRepository.findById(user.getId()).orElseThrow().getPoint())
+                .isEqualTo(100000);
+        assertThat(productRepository.findById(product.getId()).orElseThrow().getStock())
+                .isEqualTo(10);
+    }
+
+    @Test
     void 재고부족_결제시_IllegalStateException_발생() {
         // given
         User user = userRepository.save(User.create("테스터", 100000));

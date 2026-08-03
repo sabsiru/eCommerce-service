@@ -34,9 +34,18 @@ public class PaymentFacade {
     @Transactional
     public Payment processPayment(Long orderId, int paymentAmount) {
         Order order = orderService.getOrderOrThrowPaid(orderId);
+
+        // paymentAmount는 클라이언트가 주문 금액에 동의했다는 확인 값일 뿐, 실제 결제/환불
+        // 금액 계산의 근거로 쓰지 않는다. 서버가 계산한 주문 총액과 다르면 조작된 값으로 보고 거부한다.
+        if (paymentAmount != order.getTotalAmount()) {
+            throw new IllegalArgumentException(
+                    "결제 금액이 주문 금액과 일치하지 않습니다. paymentAmount=" + paymentAmount
+                            + ", orderTotalAmount=" + order.getTotalAmount());
+        }
+
         Long couponId = couponService.getAvailableCouponId(order.getUserId());
 
-        Payment payment = calculateDiscountAndCreatePayment(order.getUserId(), orderId, couponId, order.getTotalAmount(), paymentAmount);
+        Payment payment = calculateDiscountAndCreatePayment(order.getUserId(), orderId, couponId, order.getTotalAmount());
 
         order = orderService.pay(orderId);
 
@@ -70,7 +79,7 @@ public class PaymentFacade {
         return refundPayment;
     }
 
-    private Payment calculateDiscountAndCreatePayment(Long userId, Long orderId, Long couponId, int totalAmount, int paymentAmount) {
+    private Payment calculateDiscountAndCreatePayment(Long userId, Long orderId, Long couponId, int totalAmount) {
         int discountAmount = 0;
         if (couponId != null) {
             couponEventPublisher.publishCouponValidate(new CouponValidateEvent(userId, orderId, couponId));
@@ -80,6 +89,6 @@ public class PaymentFacade {
             pointEventPublisher.publishPointUsed(new PointUseEvent(userId, totalAmount));
         }
 
-        return paymentService.create(orderId, paymentAmount - discountAmount, couponId);
+        return paymentService.create(orderId, totalAmount - discountAmount, couponId);
     }
 }
