@@ -1,6 +1,9 @@
 package kr.hhplus.be.server.infrastructure.coupon;
 
+import kr.hhplus.be.server.domain.coupon.CouponIssuanceClosedException;
 import kr.hhplus.be.server.domain.coupon.CouponService;
+import kr.hhplus.be.server.domain.coupon.CouponSoldOutException;
+import kr.hhplus.be.server.domain.coupon.DuplicateCouponIssueException;
 import kr.hhplus.be.server.domain.coupon.event.CouponIssuedMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j;
@@ -27,32 +30,18 @@ public class CouponIssuedConsumer {
                     message.getCouponId()
             );
             ack.acknowledge();
-        } catch (IllegalStateException e) {
-            String msg = e.getMessage();
-
-            if ("이미 발급받은 사용자입니다.".equals(msg)) {
-                log.warn("중복 발급 시도: couponId={}, userId={}",
-                        message.getCouponId(), message.getUserId());
-                ack.acknowledge();
-                return;
-            }
-
-            if ("재고가 소진되었습니다.".equals(msg)) {
-                log.warn("재고 소진 상태: couponId={}, userId={}",
-                        message.getCouponId(), message.getUserId());
-                ack.acknowledge();
-                return;
-            }
-
-            if ("발급이 종료된 쿠폰입니다.".equals(msg)) {
-                log.warn("발급 종료된 쿠폰 접근: couponId={}, userId={}",
-                        message.getCouponId(), message.getUserId());
-                ack.acknowledge();
-                return;
-            }
-
-        } catch (Exception e) {
-            throw e;
+        } catch (DuplicateCouponIssueException e) {
+            log.warn("중복 발급 시도: couponId={}, userId={}",
+                    message.getCouponId(), message.getUserId());
+            ack.acknowledge();
+        } catch (CouponSoldOutException e) {
+            log.warn("재고 소진 상태: couponId={}, userId={}",
+                    message.getCouponId(), message.getUserId());
+            ack.acknowledge();
+        } catch (CouponIssuanceClosedException e) {
+            log.warn("발급 종료된 쿠폰 접근: couponId={}, userId={}",
+                    message.getCouponId(), message.getUserId());
+            ack.acknowledge();
         }
     }
 }
