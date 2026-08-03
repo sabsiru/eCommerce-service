@@ -50,6 +50,7 @@ public class PaymentFacade {
         return payment;
     }
 
+    @Transactional
     public Payment processRefund(Long paymentId) {
         Payment refundPayment = paymentService.refund(paymentId);
 

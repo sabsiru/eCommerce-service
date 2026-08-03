@@ -181,6 +181,41 @@ class PaymentFacadeIntegrationTest {
     }
 
     @Test
+    void 환불_중_재고복원_실패시_포인트와_결제상태도_함께_롤백된다() {
+        // given
+        User user = userRepository.save(User.create("테스터", 100000));
+        Product product1 = productRepository.save(new Product("상품1", 10000, 10, 1L));
+        Product product2 = productRepository.save(new Product("상품2", 5000, 10, 1L));
+
+        List<OrderLine> lines = List.of(
+                new OrderLine(product1.getId(), 1, product1.getPrice()),
+                new OrderLine(product2.getId(), 1, product2.getPrice())
+        );
+        Order order = orderService.create(user.getId(), lines);
+        Payment pay = paymentFacade.processPayment(order.getId(), order.getTotalAmount());
+
+        int pointAfterPayment = userRepository.findById(user.getId()).orElseThrow().getPoint();
+        int stockAfterPayment1 = productRepository.findById(product1.getId()).orElseThrow().getStock();
+
+        // 환불 처리 도중 두 번째 상품의 재고 복원이 실패하도록 미리 삭제해둔다
+        productRepository.deleteById(product2.getId());
+
+        // when & then
+        assertThrows(IllegalArgumentException.class,
+                () -> paymentFacade.processRefund(pay.getId())
+        );
+
+        // 트랜잭션 전체가 롤백되어야 하므로 첫 번째 상품 재고 복원, 포인트 복원,
+        // 결제 상태(REFUND) 변경까지 전부 반영되지 않은 상태여야 한다
+        assertThat(userRepository.findById(user.getId()).orElseThrow().getPoint())
+                .isEqualTo(pointAfterPayment);
+        assertThat(productRepository.findById(product1.getId()).orElseThrow().getStock())
+                .isEqualTo(stockAfterPayment1);
+        assertThat(paymentRepository.findById(pay.getId()).orElseThrow().getStatus())
+                .isEqualTo(PaymentStatus.COMPLETED);
+    }
+
+    @Test
     void 이미환불된_결제_환불시_IllegalStateException_발생() {
         // given
         User user = userRepository.save(User.create("테스터", 100000));
